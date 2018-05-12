@@ -6,9 +6,6 @@ namespace AngryBee.Boards
 {
     public class BoardSetting
     {
-        public Player Me { get; private set; }
-        public Player Enemy { get; private set; }
-
         public sbyte[,] ScoreBoard { get; private set; }
 
         public int Width { get; set; }
@@ -16,7 +13,7 @@ namespace AngryBee.Boards
 
         private BoardSetting() { }
 
-        public static BoardSetting Generate(byte height = 20, byte width = 20)
+        public static (BoardSetting setting, Player me, Player enemy) Generate(byte height = 12, byte width = 12)
         {
             if ((width & 0b1) == 1)
                 throw new ArgumentException("width must be an odd number.", nameof(width));
@@ -27,20 +24,20 @@ namespace AngryBee.Boards
             result.Height = height;
             result.ScoreBoard = new sbyte[height, width];
 
-            Random rand = new Random();
+            Random rand = new Random(114514);
 
             int widthDiv2 = width / 2;
 
-            for(int y  = 0; y < height; ++y)
-                for(int x = 0; x < widthDiv2; ++x)
+            for (int y = 0; y < height; ++y)
+                for (int x = 0; x < widthDiv2; ++x)
                 {
                     int value = rand.Next(16 * 3);
                     value -= 16;
                     if (value > 0)
                         value /= 2;
                     sbyte value_s = (sbyte)value;
-                    result.ScoreBoard[y, x] = value_s;
-                    result.ScoreBoard[y, result.ScoreBoard.GetLength(1) - x] = value_s;
+                    result.ScoreBoard[x, y] = value_s;
+                    result.ScoreBoard[result.ScoreBoard.GetLength(1) - 1 - x, y] = value_s;
                 }
 
             int heightDiv2 = height / 2;
@@ -51,10 +48,11 @@ namespace AngryBee.Boards
             int agent1_x = rand.Next(widthDiv2);
             int agent2_x = rand.Next(widthDiv2);
 
-            result.Me = new Player(new Point((ushort)agent1_x, agent1_y), new Point((ushort)agent2_x, agent2_y));
-            result.Enemy = new Player(new Point((ushort)(width - agent1_x), agent1_y), new Point((ushort)(width - agent2_x), agent2_y));
-
-            return result;
+            return (
+                result,
+                new Player(new Point((ushort)agent1_x, agent1_y), new Point((ushort)agent2_x, agent2_y)),
+                new Player(new Point((ushort)(width - agent1_x - 1), agent1_y), new Point((ushort)(width - agent2_x - 1), agent2_y))
+                );
         }
 
         [Obsolete("It is slower.")]

@@ -10,22 +10,22 @@ namespace AngryBee.Boards
     public struct Point
     {
         /// <summary>
-        /// x座標
+        /// x座標（ushort分しか使わない）
         /// </summary>
-        public ushort X { get; set; }
+        public uint X { get; set; }
 
         /// <summary>
-        /// y座標
+        /// y座標（ushort分しか使わない）
         /// </summary>
-        public ushort Y { get; set; }
+        public uint Y { get; set; }
 
-        public Point(ushort x, ushort y)
+        public Point(uint x, uint y)
         {
             X = x; Y = y;
         }
 
         public override int GetHashCode()
-            => (X << 16) + Y;
+            => (int)(X << 16) + (int)Y;
 
         public override bool Equals(object obj)
         {
@@ -37,5 +37,12 @@ namespace AngryBee.Boards
 
         public static bool operator ==(Point x, Point y) => x.X == y.X && x.Y == y.Y;
         public static bool operator !=(Point x, Point y) => x.X != y.X || x.Y != y.Y;
+
+        public static Point operator +(Point x, (int x,int y) y)
+        {
+            x.X = (uint)(x.X + y.x);
+            x.Y = (uint)(x.Y + y.y);
+            return x;
+        }
     }
 }

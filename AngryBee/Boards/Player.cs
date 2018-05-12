@@ -4,10 +4,10 @@ using System.Text;
 
 namespace AngryBee.Boards
 {
-    public class Player
+    public struct Player
     {
-        public Point Agent1 { get; private set; }
-        public Point Agent2 { get; private set; }
+        public Point Agent1 { get; set; }
+        public Point Agent2 { get; set; }
 
         public Player(Point one, Point two)
         {

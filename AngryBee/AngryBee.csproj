@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -16,7 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="ActionEnumerator\" />
+    <PackageReference Include="System.Memory" Version="4.5.0-rc1" />
   </ItemGroup>
 
 </Project>

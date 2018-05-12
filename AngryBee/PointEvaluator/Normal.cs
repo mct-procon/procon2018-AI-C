@@ -28,7 +28,7 @@ namespace AngryBee.PointEvaluator
         {
             unchecked
             {
-                if (Checker[x, y]) return 0;
+                if (Checker[x, y]) return int.MinValue;
 
                 Checker[x, y] = true;
 
@@ -48,67 +48,27 @@ namespace AngryBee.PointEvaluator
 
                 int result = 0;
 
-                if (!Painted[Left, Top])
-                {
-                    int cache = Calculate(ScoreBoard, Painted, ref Checker, Left, Top, width, height);
-                    if (cache == int.MinValue)
-                        return int.MinValue;
-                    else
-                        result += cache;
-                }
+                Span<Point> WayEnumerator = stackalloc Point[8];
+                WayEnumerator[0] = new Point(Left, Top);
+                WayEnumerator[1] = new Point(x, Top);
+                WayEnumerator[2] = new Point(Right, Top);
+                WayEnumerator[3] = new Point(Right, y);
+                WayEnumerator[4] = new Point(Right, Bottom);
+                WayEnumerator[5] = new Point(x, Bottom);
+                WayEnumerator[6] = new Point(Left, Bottom);
+                WayEnumerator[7] = new Point(Left, y);
 
-                if (!Painted[x, Top])
+                for(int i = 0; i < WayEnumerator.Length; ++i)
                 {
-                    int cache = Calculate(ScoreBoard, Painted, ref Checker, x, Top, width, height);
-                    if (cache == int.MinValue)
-                        return int.MinValue;
-                    else
-                        result += cache;
-                }
-
-                if (!Painted[Right, Top])
-                {
-                    int cache = Calculate(ScoreBoard, Painted, ref Checker, Right, Top, width, height);
-                    if (cache == int.MinValue)
-                        return int.MinValue;
-                    else
-                        result += cache;
-                }
-
-                if (!Painted[Right, y])
-                {
-                    int cache = Calculate(ScoreBoard, Painted, ref Checker, Right, y, width, height);
-                    if (cache == int.MinValue)
-                        return int.MinValue;
-                    else
-                        result += cache;
-                }
-
-                if (!Painted[Right, Bottom])
-                {
-                    int cache = Calculate(ScoreBoard, Painted, ref Checker, Right, Bottom, width, height);
-                    if (cache == int.MinValue)
-                        return int.MinValue;
-                    else
-                        result += cache;
-                }
-
-                if (!Painted[x, Bottom])
-                {
-                    int cache = Calculate(ScoreBoard, Painted, ref Checker, x, Bottom, width, height);
-                    if (cache == int.MinValue)
-                        return int.MinValue;
-                    else
-                        result += cache;
-                }
-
-                if (!Painted[Left, Bottom])
-                {
-                    int cache = Calculate(ScoreBoard, Painted, ref Checker, Left, Bottom, width, height);
-                    if (cache == int.MinValue)
-                        return int.MinValue;
-                    else
-                        result += cache;
+                    var Way = WayEnumerator[i];
+                    if (!Painted[Way])
+                    {
+                        int cache = Calculate(ScoreBoard, Painted, ref Checker, Way.X, Way.Y, width, height);
+                        if (cache == int.MinValue)
+                            return int.MinValue;
+                        else
+                            result += cache;
+                    }
                 }
 
                 result += Math.Abs(ScoreBoard[x, y]);
