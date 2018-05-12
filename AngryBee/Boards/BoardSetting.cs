@@ -18,7 +18,6 @@ namespace AngryBee.Boards
             if ((width & 0b1) == 1)
                 throw new ArgumentException("width must be an odd number.", nameof(width));
 
-
             BoardSetting result = new BoardSetting();
             result.Width = width;
             result.Height = height;

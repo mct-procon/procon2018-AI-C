@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Numerics;
 
 namespace AngryBee.Boards
 {
@@ -40,8 +41,8 @@ namespace AngryBee.Boards
 
         public static Point operator +(Point x, (int x,int y) y)
         {
-            x.X = (uint)(x.X + y.x);
-            x.Y = (uint)(x.Y + y.y);
+            x.X = (uint)((int)x.X + y.x);
+            x.Y = (uint)((int)x.Y + y.y);
             return x;
         }
     }

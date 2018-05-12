@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AngryBee.Boards;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,7 +7,7 @@ namespace AngryBee.Rule
 {
     public class MovableChecker
     {
-        public MovableResult MovableCheck<T>(in T MeField, in T EnemyField, Boards.Player Me, Boards.Player Enemy ) where T : Boards.ColoredBoard
+        public MovableResult MovableCheck(in ColoredBoardSmallBigger MeField, in ColoredBoardSmallBigger EnemyField, Boards.Player Me, Boards.Player Enemy )
         {
             MovableResult result = new MovableResult();
 

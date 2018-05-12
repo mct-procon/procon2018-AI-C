@@ -10,6 +10,9 @@ namespace AngryBee.Rule
 
         public bool IsMovable =>
             ((Me1 | Me2) & MovableResultType.NotMovable) == 0;
+
+        public bool IsEraseNeeded =>
+            ((Me1 | Me2) & MovableResultType.EraseNeeded) == MovableResultType.EraseNeeded;
     }
 
     public enum MovableResultType : byte

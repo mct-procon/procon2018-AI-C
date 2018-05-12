@@ -13,10 +13,15 @@ namespace AngryBee.AI
         (int DestX, int DestY)[] WayEnumerator = { (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1) };
 
         public int ends = 0;
-    
-        public int Max(int deepness, BoardSetting setting,in ColoredBoardSmallBigger MeBoard,in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy)
+
+        public Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> Begin(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy)
         {
-            int result = int.MinValue;
+            return Mini(deepness, setting, MeBoard, EnemyBoard, Me, Enemy, int.MaxValue);
+        }
+    
+        public Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> Max(int deepness, BoardSetting setting,in ColoredBoardSmallBigger MeBoard,in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int beta)
+        {
+            Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> result = Tuple.Create( int.MinValue , new ColoredBoardSmallBigger(), new ColoredBoardSmallBigger());
             deepness--;
             for (int i = 0; i < WayEnumerator.Length; ++i)
                 for (int m = 0; m < WayEnumerator.Length; ++m)
@@ -29,37 +34,55 @@ namespace AngryBee.AI
 
                     if (!movable.IsMovable) continue;
 
-                    var newEnBoard = EnemyBoard;
+                    Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> cache = null;
                     var newMeBoard = MeBoard;
 
-                    if (movable.Me1 == Rule.MovableResultType.EraseNeeded)
+                    if (movable.IsEraseNeeded)
                     {
-                        newEnBoard[newMe.Agent1] = false;
-                        newMe.Agent1 = Me.Agent1;
-                    }
-                    else
+                        var newEnBoard = EnemyBoard;
+
+                        if (movable.Me1 == Rule.MovableResultType.EraseNeeded)
+                        {
+                            newEnBoard[newMe.Agent1] = false;
+                            newMe.Agent1 = Me.Agent1;
+                        }
+                        else
+                            newMeBoard[newMe.Agent1] = true;
+
+                        if (movable.Me2 == Rule.MovableResultType.EraseNeeded)
+                        {
+                            newEnBoard[newMe.Agent2] = false;
+                            newMe.Agent2 = Me.Agent2;
+                        }
+                        else
+                            newMeBoard[newMe.Agent2] = true;
+
+                        cache = Mini(deepness, setting, newMeBoard, newEnBoard, newMe, Enemy, result.Item1);
+                    } else
+                    {
                         newMeBoard[newMe.Agent1] = true;
-
-                    if(movable.Me2 == Rule.MovableResultType.EraseNeeded)
-                    {
-                        newEnBoard[newMe.Agent2] = false;
-                        newMe.Agent2 = Me.Agent2;
-                    }
-                    else
                         newMeBoard[newMe.Agent2] = true;
+                        cache = Mini(deepness, setting, newMeBoard, EnemyBoard, newMe, Enemy, result.Item1);
+                    }
 
-                    result = Math.Max(Mini(deepness, setting, newMeBoard, newEnBoard, newMe, Enemy), result);
+                    if (result.Item1 < cache.Item1)
+                        result = cache;
+                    if (result.Item1 > beta)
+                        return result;
                 }
 
             return result;
         }
 
-        public int Mini(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy)
+        public Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> Mini(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha)
         {
             if (deepness == 0)
-                return PointEvaluator.Calculate(setting.ScoreBoard, MeBoard, 0);
+            {
+                ends++;
+                return Tuple.Create(PointEvaluator.Calculate(setting.ScoreBoard, MeBoard, 0), MeBoard, EnemyBoard);
+            }
 
-            int result = int.MaxValue;
+            Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> result = Tuple.Create(int.MaxValue, new ColoredBoardSmallBigger(), new ColoredBoardSmallBigger());
             for (int i = 0; i < WayEnumerator.Length; ++i)
                 for (int m = 0; m < WayEnumerator.Length; ++m)
                 {
@@ -71,26 +94,44 @@ namespace AngryBee.AI
 
                     if (!movable.IsMovable) continue;
 
+
+                    Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> cache = null;
                     var newEnBoard = EnemyBoard;
-                    var newMeBoard = MeBoard;
 
-                    if (movable.Me1 == Rule.MovableResultType.EraseNeeded)
+                    if (movable.IsEraseNeeded)
                     {
-                        newMeBoard[newEnemy.Agent1] = false;
-                        newEnemy.Agent1 = Enemy.Agent1;
+                        var newMeBoard = MeBoard;
+
+                        if (movable.Me1 == Rule.MovableResultType.EraseNeeded)
+                        {
+                            newMeBoard[newEnemy.Agent1] = false;
+                            newEnemy.Agent1 = Enemy.Agent1;
+                        }
+                        else
+                            newEnBoard[newEnemy.Agent1] = true;
+
+                        if (movable.Me2 == Rule.MovableResultType.EraseNeeded)
+                        {
+                            newMeBoard[newEnemy.Agent2] = false;
+                            newEnemy.Agent2 = Enemy.Agent2;
+                        }
+                        else
+                            newEnBoard[newEnemy.Agent2] = true;
+
+
+                        cache = Max(deepness, setting, newMeBoard, newEnBoard, Me, newEnemy, result.Item1);
                     }
                     else
+                    {
                         newEnBoard[newEnemy.Agent1] = true;
-
-                    if (movable.Me2 == Rule.MovableResultType.EraseNeeded)
-                    {
-                        newMeBoard[newEnemy.Agent2] = false;
-                        newEnemy.Agent2 = Enemy.Agent2;
-                    }
-                    else
                         newEnBoard[newEnemy.Agent2] = true;
+                        cache = Max(deepness, setting, MeBoard, newEnBoard, Me, newEnemy, result.Item1);
+                    }
 
-                    result = Math.Min(Max(deepness, setting, newMeBoard, newEnBoard, Me, newEnemy), result);
+                    if (result.Item1 > cache.Item1)
+                        result = cache;
+                    if (result.Item1 < alpha)
+                        return result;
                 }
 
             return result;

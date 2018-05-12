@@ -34,14 +34,14 @@ namespace AngryBee.Boards
         public bool this[uint x, uint y] {
             get {
                 if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
-                return (board & (1ul >> (int)(x + (y* Width)))) != 0;
+                return (board & (1ul << (int)(x + (y* Width)))) != 0;
             }
             set {
                 if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
                 if (value)
-                    board |= (1ul >> (int)(x + (y * Width)));
+                    board |= (1ul << (int)(x + (y * Width)));
                 else
-                    board &= ~(1ul >> (int)(x + (y * Width)));
+                    board &= ~(1ul << (int)(x + (y * Width)));
             }
         }
 
@@ -53,16 +53,16 @@ namespace AngryBee.Boards
 
     public unsafe struct ColoredBoardSmallBigger : ColoredBoard
     {
-        private const int BoardSize = 16;
+        private const int BoardSize = 12;
 
         private fixed ushort board[BoardSize];
 
         public uint Width { get; private set; }
         public uint Height { get; private set; }
 
-        public ColoredBoardSmallBigger(uint width = 0, uint height = 0)
+        public ColoredBoardSmallBigger(uint width = 1, uint height = 1)
         {
-            if (width > 16 || height > 16 || (width == 0 && height == 0))
+            if (width > 16 || height > BoardSize || (width == 0 && height == 0))
                 throw new ArgumentException("x and y are bad numbers.");
             Width = width;
             Height = height;
@@ -84,7 +84,7 @@ namespace AngryBee.Boards
                 bool result = false;
                 fixed (ushort* ptr = board)
                 {
-                    result = (*(ptr + y) & (1ul >> (int)x)) != 0;
+                    result = (*(ptr + y) & (1ul << (int)x)) != 0;
                 }
                 return result;
             }
@@ -94,9 +94,9 @@ namespace AngryBee.Boards
                 fixed (ushort* ptr = board)
                 {
                     if (value)
-                        *(ptr + y) |= (ushort)(1u >> (int)x);
+                        *(ptr + y) |= (ushort)(1u << (int)x);
                     else
-                        *(ptr + y) &= (ushort)(~(1u >> (int)x));
+                        *(ptr + y) &= (ushort)(~(1u << (int)x));
                 }
             }
         }
@@ -140,7 +140,7 @@ namespace AngryBee.Boards
                 bool result = false;
                 fixed (uint* ptr = board)
                 {
-                    result = (*(ptr + y) & (1ul >> (int)x)) != 0;
+                    result = (*(ptr + y) & (1ul << (int)x)) != 0;
                 }
                 return result;
             }
@@ -150,9 +150,9 @@ namespace AngryBee.Boards
                 fixed (uint* ptr = board)
                 {
                     if (value)
-                        *(ptr + y) |= (1u >> (int)x);
+                        *(ptr + y) |= (1u << (int)x);
                     else
-                        *(ptr + y) &= ~(1u >> (int)x);
+                        *(ptr + y) &= ~(1u << (int)x);
                 }
             }
         }
@@ -197,7 +197,7 @@ namespace AngryBee.Boards
                 bool result = false;
                 fixed(ulong* ptr = board)
                 {
-                    result = (*(ptr + y) & (1ul >> (int)x)) != 0;
+                    result = (*(ptr + y) & (1ul << (int)x)) != 0;
                 }
                 return result;
             }
@@ -208,9 +208,9 @@ namespace AngryBee.Boards
                 fixed (ulong* ptr = board)
                 {
                     if (value)
-                        *(ptr + y) |= (1ul >> (int)x);
+                        *(ptr + y) |= (1ul << (int)x);
                     else
-                        *(ptr + y) &= ~(1ul >> (int)x);
+                        *(ptr + y) &= ~(1ul << (int)x);
                 }
             }
         }
@@ -247,16 +247,16 @@ namespace AngryBee.Boards
                 if (x < 0 || y < 0) throw new ArgumentException("x and y must be positive numbers.");
                 if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
 
-                return (board[y] & (new BigInteger(1) >> (int)x)) != 0;
+                return (board[y] & (new BigInteger(1) << (int)x)) != 0;
             }
             set {
                 if (x < 0 || y < 0) throw new ArgumentException("x and y must be positive numbers.");
                 if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
 
                 if (value)
-                    board[y] |= (new BigInteger(1) >> (int)x);
+                    board[y] |= (new BigInteger(1) << (int)x);
                 else
-                    board[y] &= ~(new BigInteger(1) >> (int)x);
+                    board[y] &= ~(new BigInteger(1) << (int)x);
             }
         }
 

@@ -48,15 +48,11 @@ namespace AngryBee.PointEvaluator
 
                 int result = 0;
 
-                Span<Point> WayEnumerator = stackalloc Point[8];
-                WayEnumerator[0] = new Point(Left, Top);
-                WayEnumerator[1] = new Point(x, Top);
-                WayEnumerator[2] = new Point(Right, Top);
-                WayEnumerator[3] = new Point(Right, y);
-                WayEnumerator[4] = new Point(Right, Bottom);
-                WayEnumerator[5] = new Point(x, Bottom);
-                WayEnumerator[6] = new Point(Left, Bottom);
-                WayEnumerator[7] = new Point(Left, y);
+                Span<Point> WayEnumerator = stackalloc Point[4];
+                WayEnumerator[0] = new Point(x, Top);
+                WayEnumerator[1] = new Point(Right, y);
+                WayEnumerator[2] = new Point(x, Bottom);
+                WayEnumerator[3] = new Point(Left, y);
 
                 for(int i = 0; i < WayEnumerator.Length; ++i)
                 {
