@@ -7,10 +7,10 @@ namespace AngryBee.Boards
 {
     public interface ColoredBoard
     {
-        ushort Width { get; }
-        ushort Height { get; }
+        uint Width { get; }
+        uint Height { get; }
 
-        bool this[ushort x, ushort y] { get;set; }
+        bool this[uint x, uint y] { get;set; }
         bool this[Point p] { get;set; }
     }
 
@@ -18,13 +18,10 @@ namespace AngryBee.Boards
     {
         private ulong board;
 
-        private ushort Width;
-        private ushort Height;
+        public uint Width { get; private set; }
+        public uint Height { get; private set; }
 
-        ushort ColoredBoard.Width => Width;
-        ushort ColoredBoard.Height => Height;
-
-        public ColoredBoardSmall(ushort width = 0,ushort height = 0)
+        public ColoredBoardSmall(uint width = 0,uint height = 0)
         {
             if (width * height > 64 || (width == 0 && height == 0))
                 throw new ArgumentException("x and y are bad numbers.");
@@ -34,19 +31,17 @@ namespace AngryBee.Boards
             board = 0b0;
         }
 
-        public bool this[ushort x, ushort y] {
+        public bool this[uint x, uint y] {
             get {
-                if (x < 0 || y < 0) throw new ArgumentException("x and y must be positive numbers.");
                 if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
                 return (board & (1ul >> (int)(x + (y* Width)))) != 0;
             }
             set {
-                if (x < 0 || y < 0) throw new ArgumentException("x and y must be positive numbers.");
                 if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
                 if (value)
-                    board |= (1ul >> x + (y * Width));
+                    board |= (1ul >> (int)(x + (y * Width)));
                 else
-                    board &= ~(1ul >> x + (y * Width));
+                    board &= ~(1ul >> (int)(x + (y * Width)));
             }
         }
 
@@ -62,13 +57,10 @@ namespace AngryBee.Boards
 
         private fixed ushort board[BoardSize];
 
-        private ushort Width;
-        private ushort Height;
+        public uint Width { get; private set; }
+        public uint Height { get; private set; }
 
-        ushort ColoredBoard.Width => Width;
-        ushort ColoredBoard.Height => Height;
-
-        public ColoredBoardSmallBigger(ushort width = 0, ushort height = 0)
+        public ColoredBoardSmallBigger(uint width = 0, uint height = 0)
         {
             if (width > 16 || height > 16 || (width == 0 && height == 0))
                 throw new ArgumentException("x and y are bad numbers.");
@@ -85,28 +77,26 @@ namespace AngryBee.Boards
             }
         }
 
-        public bool this[ushort x, ushort y] {
+        public bool this[uint x, uint y] {
             get {
-                if (x < 0 || y < 0) throw new ArgumentException("x and y must be positive numbers.");
                 if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
 
                 bool result = false;
                 fixed (ushort* ptr = board)
                 {
-                    result = (*(ptr + y) & (1ul >> x)) != 0;
+                    result = (*(ptr + y) & (1ul >> (int)x)) != 0;
                 }
                 return result;
             }
             set {
-                if (x < 0 || y < 0) throw new ArgumentException("x and y must be positive numbers.");
                 if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
 
                 fixed (ushort* ptr = board)
                 {
                     if (value)
-                        *(ptr + y) |= (ushort)(1u >> x);
+                        *(ptr + y) |= (ushort)(1u >> (int)x);
                     else
-                        *(ptr + y) &= (ushort)(~(1u >> x));
+                        *(ptr + y) &= (ushort)(~(1u >> (int)x));
                 }
             }
         }
@@ -123,13 +113,10 @@ namespace AngryBee.Boards
 
         private fixed uint board[BoardSize];
 
-        private ushort Width;
-        private ushort Height;
+        public uint Width { get; private set; }
+        public uint Height { get; private set; }
 
-        ushort ColoredBoard.Width => Width;
-        ushort ColoredBoard.Height => Height;
-
-        public ColoredBoardNormalSmaller(ushort width = 0, ushort height = 0)
+        public ColoredBoardNormalSmaller(uint width = 0, uint height = 0)
         {
             if (width > 32 || height > 32 || (width == 0 && height == 0))
                 throw new ArgumentException("x and y are bad numbers.");
@@ -146,28 +133,26 @@ namespace AngryBee.Boards
             }
         }
 
-        public bool this[ushort x, ushort y] {
+        public bool this[uint x, uint y] {
             get {
-                if (x < 0 || y < 0) throw new ArgumentException("x and y must be positive numbers.");
                 if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
 
                 bool result = false;
                 fixed (uint* ptr = board)
                 {
-                    result = (*(ptr + y) & (1ul >> x)) != 0;
+                    result = (*(ptr + y) & (1ul >> (int)x)) != 0;
                 }
                 return result;
             }
             set {
-                if (x < 0 || y < 0) throw new ArgumentException("x and y must be positive numbers.");
                 if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
 
                 fixed (uint* ptr = board)
                 {
                     if (value)
-                        *(ptr + y) |= (1u >> x);
+                        *(ptr + y) |= (1u >> (int)x);
                     else
-                        *(ptr + y) &= ~(1u >> x);
+                        *(ptr + y) &= ~(1u >> (int)x);
                 }
             }
         }
@@ -184,13 +169,10 @@ namespace AngryBee.Boards
 
         private fixed ulong board[BoardSize];
 
-        private ushort Width;
-        private ushort Height;
+        public uint Width { get; private set; }
+        public uint Height { get; private set; }
 
-        ushort ColoredBoard.Width => Width;
-        ushort ColoredBoard.Height => Height;
-
-        public ColoredBoardNormal(ushort width = 0, ushort height = 0)
+        public ColoredBoardNormal(uint width = 0, uint height = 0)
         {
             if (width > 64 || height > 64 || (width == 0 && height == 0))
                 throw new ArgumentException("x and y are bad numbers.");
@@ -207,7 +189,7 @@ namespace AngryBee.Boards
             }
         }
 
-        public bool this[ushort x, ushort y] {
+        public bool this[uint x, uint y] {
             get {
                 if (x < 0 || y < 0) throw new ArgumentException("x and y must be positive numbers.");
                 if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
@@ -215,7 +197,7 @@ namespace AngryBee.Boards
                 bool result = false;
                 fixed(ulong* ptr = board)
                 {
-                    result = (*(ptr + y) & (1ul >> x)) != 0;
+                    result = (*(ptr + y) & (1ul >> (int)x)) != 0;
                 }
                 return result;
             }
@@ -226,9 +208,9 @@ namespace AngryBee.Boards
                 fixed (ulong* ptr = board)
                 {
                     if (value)
-                        *(ptr + y) |= (1ul >> x);
+                        *(ptr + y) |= (1ul >> (int)x);
                     else
-                        *(ptr + y) &= ~(1ul >> x);
+                        *(ptr + y) &= ~(1ul >> (int)x);
                 }
             }
         }
@@ -244,13 +226,10 @@ namespace AngryBee.Boards
 
         private BigInteger[] board;
 
-        private ushort Width;
-        private ushort Height;
+        public uint Width { get; private set; }
+        public uint Height { get; private set; }
 
-        ushort ColoredBoard.Width => Width;
-        ushort ColoredBoard.Height => Height;
-
-        public ColoredBoardBig(ushort width = 0, ushort height = 0)
+        public ColoredBoardBig(uint width = 0, uint height = 0)
         {
             if (width == 0 && height == 0)
                 throw new ArgumentException("x and y are bad numbers.");
@@ -259,25 +238,25 @@ namespace AngryBee.Boards
 
             board = new BigInteger[Height];
 
-            for (ushort i = 0; i < Height; ++i)
+            for (uint i = 0; i < Height; ++i)
                 board[i] = new BigInteger();
         }
 
-        public bool this[ushort x, ushort y] {
+        public bool this[uint x, uint y] {
             get {
                 if (x < 0 || y < 0) throw new ArgumentException("x and y must be positive numbers.");
                 if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
 
-                return (board[y] & (new BigInteger(1) >> x)) != 0;
+                return (board[y] & (new BigInteger(1) >> (int)x)) != 0;
             }
             set {
                 if (x < 0 || y < 0) throw new ArgumentException("x and y must be positive numbers.");
                 if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
 
                 if (value)
-                    board[y] |= (new BigInteger(1) >> x);
+                    board[y] |= (new BigInteger(1) >> (int)x);
                 else
-                    board[y] &= ~(new BigInteger(1) >> x);
+                    board[y] &= ~(new BigInteger(1) >> (int)x);
             }
         }
 

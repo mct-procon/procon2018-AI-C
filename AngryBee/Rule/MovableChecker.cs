@@ -10,7 +10,7 @@ namespace AngryBee.Rule
         {
             MovableResult result = new MovableResult();
 
-            ushort width = MeField.Width, height = MeField.Height;
+            uint width = MeField.Width, height = MeField.Height;
 
             if (Me.Agent1.X >= width || Me.Agent1.X >= height)
             {

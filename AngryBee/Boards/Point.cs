@@ -24,6 +24,17 @@ namespace AngryBee.Boards
             X = x; Y = y;
         }
 
+        public override int GetHashCode()
+            => (X << 16) + Y;
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Point)
+                return this == (Point)obj;
+            else
+                return false;
+        }
+
         public static bool operator ==(Point x, Point y) => x.X == y.X && x.Y == y.Y;
         public static bool operator !=(Point x, Point y) => x.X != y.X || x.Y != y.Y;
     }
