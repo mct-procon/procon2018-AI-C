@@ -7,6 +7,9 @@ namespace AngryBee.Boards
 {
     public interface ColoredBoard
     {
+        ushort Width { get; }
+        ushort Height { get; }
+
         bool this[ushort x, ushort y] { get;set; }
         bool this[Point p] { get;set; }
     }
@@ -15,8 +18,11 @@ namespace AngryBee.Boards
     {
         private ulong board;
 
-        private ulong Width;
-        private ulong Height;
+        private ushort Width;
+        private ushort Height;
+
+        ushort ColoredBoard.Width => Width;
+        ushort ColoredBoard.Height => Height;
 
         public ColoredBoardSmall(ushort width = 0,ushort height = 0)
         {
@@ -38,9 +44,9 @@ namespace AngryBee.Boards
                 if (x < 0 || y < 0) throw new ArgumentException("x and y must be positive numbers.");
                 if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
                 if (value)
-                    board |= (1ul >> (int)(x + (y * Width)));
+                    board |= (1ul >> x + (y * Width));
                 else
-                    board &= ~(1ul >> (int)(x + (y * Width)));
+                    board &= ~(1ul >> x + (y * Width));
             }
         }
 
@@ -56,8 +62,11 @@ namespace AngryBee.Boards
 
         private fixed ushort board[BoardSize];
 
-        private ulong Width;
-        private ulong Height;
+        private ushort Width;
+        private ushort Height;
+
+        ushort ColoredBoard.Width => Width;
+        ushort ColoredBoard.Height => Height;
 
         public ColoredBoardSmallBigger(ushort width = 0, ushort height = 0)
         {
@@ -95,9 +104,9 @@ namespace AngryBee.Boards
                 fixed (ushort* ptr = board)
                 {
                     if (value)
-                        *(ptr + y) |= (1u >> x);
+                        *(ptr + y) |= (ushort)(1u >> x);
                     else
-                        *(ptr + y) &= ~(1u >> x);
+                        *(ptr + y) &= (ushort)(~(1u >> x));
                 }
             }
         }
@@ -114,8 +123,11 @@ namespace AngryBee.Boards
 
         private fixed uint board[BoardSize];
 
-        private ulong Width;
-        private ulong Height;
+        private ushort Width;
+        private ushort Height;
+
+        ushort ColoredBoard.Width => Width;
+        ushort ColoredBoard.Height => Height;
 
         public ColoredBoardNormalSmaller(ushort width = 0, ushort height = 0)
         {
@@ -172,8 +184,11 @@ namespace AngryBee.Boards
 
         private fixed ulong board[BoardSize];
 
-        private ulong Width;
-        private ulong Height;
+        private ushort Width;
+        private ushort Height;
+
+        ushort ColoredBoard.Width => Width;
+        ushort ColoredBoard.Height => Height;
 
         public ColoredBoardNormal(ushort width = 0, ushort height = 0)
         {
@@ -226,12 +241,14 @@ namespace AngryBee.Boards
 
     public struct ColoredBoardBig : ColoredBoard
     {
-        private const int BoardSize = 64;
 
         private BigInteger[] board;
 
         private ushort Width;
         private ushort Height;
+
+        ushort ColoredBoard.Width => Width;
+        ushort ColoredBoard.Height => Height;
 
         public ColoredBoardBig(ushort width = 0, ushort height = 0)
         {

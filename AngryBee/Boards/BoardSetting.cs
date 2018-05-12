@@ -57,18 +57,7 @@ namespace AngryBee.Boards
             return result;
         }
 
-        public class Player
-        {
-            public Point Agent1 { get; private set; }
-            public Point Agent2 { get; private set; }
-
-            public Player(Point one, Point two)
-            {
-                Agent1 = one;
-                Agent2 = two;
-            }
-        }
-
+        [Obsolete("It is slower.")]
         public ColoredBoard GetNewColoredBoard()
         {
             int count = Width * Height;
