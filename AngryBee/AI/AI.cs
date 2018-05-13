@@ -16,10 +16,10 @@ namespace AngryBee.AI
 
         public Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> Begin(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy)
         {
-            return Mini(deepness, setting, MeBoard, EnemyBoard, Me, Enemy, int.MaxValue);
+            return Mini(deepness, setting, MeBoard, EnemyBoard, Me, Enemy, -int.MaxValue, int.MaxValue);
         }
     
-        public Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> Max(int deepness, BoardSetting setting,in ColoredBoardSmallBigger MeBoard,in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int beta)
+        public Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> Max(int deepness, BoardSetting setting,in ColoredBoardSmallBigger MeBoard,in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta)
         {
             Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> result = Tuple.Create( int.MinValue , new ColoredBoardSmallBigger(), new ColoredBoardSmallBigger());
             deepness--;
@@ -57,29 +57,29 @@ namespace AngryBee.AI
                         else
                             newMeBoard[newMe.Agent2] = true;
 
-                        cache = Mini(deepness, setting, newMeBoard, newEnBoard, newMe, Enemy, result.Item1);
+                        cache = Mini(deepness, setting, newMeBoard, newEnBoard, newMe, Enemy, Math.Max(result.Item1, alpha), beta);
                     } else
                     {
                         newMeBoard[newMe.Agent1] = true;
                         newMeBoard[newMe.Agent2] = true;
-                        cache = Mini(deepness, setting, newMeBoard, EnemyBoard, newMe, Enemy, result.Item1);
+                        cache = Mini(deepness, setting, newMeBoard, EnemyBoard, newMe, Enemy, Math.Max(result.Item1, alpha), beta);
                     }
 
                     if (result.Item1 < cache.Item1)
                         result = cache;
-                    if (result.Item1 > beta)
+                    if (result.Item1 >= beta)
                         return result;
                 }
 
             return result;
         }
 
-        public Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> Mini(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha)
+        public Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> Mini(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta)
         {
             if (deepness == 0)
             {
                 ends++;
-                return Tuple.Create(PointEvaluator.Calculate(setting.ScoreBoard, MeBoard, 0), MeBoard, EnemyBoard);
+                return Tuple.Create(PointEvaluator.Calculate(setting.ScoreBoard, MeBoard, 0) - PointEvaluator.Calculate(setting.ScoreBoard, EnemyBoard, 0), MeBoard, EnemyBoard);
             }
 
             Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> result = Tuple.Create(int.MaxValue, new ColoredBoardSmallBigger(), new ColoredBoardSmallBigger());
@@ -119,18 +119,18 @@ namespace AngryBee.AI
                             newEnBoard[newEnemy.Agent2] = true;
 
 
-                        cache = Max(deepness, setting, newMeBoard, newEnBoard, Me, newEnemy, result.Item1);
+                        cache = Max(deepness, setting, newMeBoard, newEnBoard, Me, newEnemy, alpha, Math.Min(result.Item1, beta));
                     }
                     else
                     {
                         newEnBoard[newEnemy.Agent1] = true;
                         newEnBoard[newEnemy.Agent2] = true;
-                        cache = Max(deepness, setting, MeBoard, newEnBoard, Me, newEnemy, result.Item1);
+                        cache = Max(deepness, setting, MeBoard, newEnBoard, Me, newEnemy, alpha, Math.Min(result.Item1, beta));
                     }
 
                     if (result.Item1 > cache.Item1)
                         result = cache;
-                    if (result.Item1 < alpha)
+                    if (result.Item1 <= alpha)
                         return result;
                 }
 
