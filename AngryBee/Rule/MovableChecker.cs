@@ -29,7 +29,7 @@ namespace AngryBee.Rule
                 result.Me1 = MovableResultType.EnemyIsHere;
                 return result;
             }
-            if(Me.Agent2 == Enemy.Agent2 || Me.Agent2 == Enemy.Agent2)
+            if(Me.Agent2 == Enemy.Agent1 || Me.Agent2 == Enemy.Agent2)
             {
                 result.Me2 = MovableResultType.EnemyIsHere;
                 return result;
