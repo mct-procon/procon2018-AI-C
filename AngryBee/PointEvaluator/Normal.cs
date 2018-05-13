@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using AngryBee.Boards;
+using System.Runtime.Intrinsics.X86;
 
 namespace AngryBee.PointEvaluator
 {
@@ -13,8 +14,8 @@ namespace AngryBee.PointEvaluator
             int result = 0;
             uint width = Painted.Width;
             uint height = Painted.Height;
-            for (uint x = 0; x < Painted.Width; ++x)
-                for (uint y = 0; y < Painted.Height; ++y)
+            for (uint x = 0; x < width; ++x)
+                for (uint y = 0; y < height; ++y)
                 {
                     if (Painted[x, y])
                     {
@@ -22,15 +23,49 @@ namespace AngryBee.PointEvaluator
                         checker[x, y] = true;
                     }
                 }
-            for (uint x = 0; x < Painted.Width; ++x)
-                for (uint y = 0; y < Painted.Height; ++y)
-                {
-                    int cache = Calculate(ScoreBoard, Painted, ref checker, x, y, width, height);
-                    if (cache != int.MinValue)
-                        result += cache;
-                }
+
+            uint x_max = width - 1;
+            for (uint y = 0;y < height; ++y)
+            {
+                BadSpaceFill(ref checker, 0, y, width, height);
+                BadSpaceFill(ref checker, x_max, y, width, height);
+            }
+
+            uint y_max = height - 1;
+            for (uint x = 0; x < width; ++x)
+            {
+                BadSpaceFill(ref checker, x, 0, width, height);
+                BadSpaceFill(ref checker, x, y_max, width, height);
+            }
+
+            for (uint x = 0; x < width; ++x)
+                for (uint y = 0; y < height; ++y)
+                    if (!checker[x, y])
+                        result += Math.Abs(ScoreBoard[x, y]);
 
             return result;
+        }
+
+        public void BadSpaceFill(ref ColoredBoardSmallBigger Checker, uint x, uint y, uint width, uint height)
+        {
+            Checker[x, y] = true;
+
+            uint Right = x + 1u;
+            uint Left = x - 1u;
+            uint Bottom = y + 1u;
+            uint Top = y - 1u;
+
+            if (Top < height && !Checker[x, Top])
+                BadSpaceFill(ref Checker, x, Top, width, height);
+
+            if (Bottom < height && !Checker[x, Bottom])
+                BadSpaceFill(ref Checker, x, Bottom, width, height);
+
+            if (Left < width && !Checker[Left, y])
+                BadSpaceFill(ref Checker, Left, y, width, height);
+
+            if (Right < width && !Checker[Right, y])
+                BadSpaceFill(ref Checker, Right, y, Right, height);
         }
 
         public int Calculate(sbyte[,] ScoreBoard, in ColoredBoardSmallBigger Painted, ref ColoredBoardSmallBigger Checker, uint x, uint y, uint width, uint height)

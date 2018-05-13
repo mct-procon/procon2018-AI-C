@@ -11,7 +11,6 @@ namespace AngryBee
 
             var ai = new AI.AI();
             var game = Boards.BoardSetting.Generate(height, width);
-            var sw = System.Diagnostics.Stopwatch.StartNew();
 
             var meBoard = new Boards.ColoredBoardSmallBigger(height, width);
             var enemyBoard = new Boards.ColoredBoardSmallBigger(height, width);
@@ -22,9 +21,12 @@ namespace AngryBee
             enemyBoard[game.enemy.Agent1] = true;
             enemyBoard[game.enemy.Agent2] = true;
 
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
             var res = ai.Begin(2, game.setting,meBoard, enemyBoard, game.me, game.enemy);
 
             sw.Stop();
+
             for (int i = 0; i < game.setting.ScoreBoard.GetLength(0); ++i)
             {
                 for (int m = 0; m < game.setting.ScoreBoard.GetLength(1); ++m)

@@ -79,7 +79,9 @@ namespace AngryBee.Boards
 
         public bool this[uint x, uint y] {
             get {
-                if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
+#if DEBUG
+                    if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
+#endif
 
                 bool result = false;
                 fixed (ushort* ptr = board)
@@ -89,8 +91,9 @@ namespace AngryBee.Boards
                 return result;
             }
             set {
-                if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
-
+#if DEBUG
+                    if (x >= Width || y >= Height) throw new ArgumentOutOfRangeException();
+#endif
                 fixed (ushort* ptr = board)
                 {
                     if (value)
