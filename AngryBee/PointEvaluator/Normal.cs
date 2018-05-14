@@ -20,23 +20,11 @@ namespace AngryBee.PointEvaluator
                     if (Painted[x, y])
                     {
                         result += ScoreBoard[x, y];
-                        checker[x, y] = true;
+						checker[x, y] = true;
                     }
                 }
 
-            uint x_max = width - 1;
-            for (uint y = 0;y < height; ++y)
-            {
-                BadSpaceFill(ref checker, 0, y, width, height);
-                BadSpaceFill(ref checker, x_max, y, width, height);
-            }
-
-            uint y_max = height - 1;
-            for (uint x = 0; x < width; ++x)
-            {
-                BadSpaceFill(ref checker, x, 0, width, height);
-                BadSpaceFill(ref checker, x, y_max, width, height);
-            }
+			BadSpaceFill(ref checker, width, height);
 
             for (uint x = 0; x < width; ++x)
                 for (uint y = 0; y < height; ++y)
@@ -46,27 +34,60 @@ namespace AngryBee.PointEvaluator
             return result;
         }
 
-        public void BadSpaceFill(ref ColoredBoardSmallBigger Checker, uint x, uint y, uint width, uint height)
+		uint[] myStack = new uint[1024];	//x, yの順で入れる. y, xの順で取り出す. width * height以上のサイズにする.
+        public void BadSpaceFill(ref ColoredBoardSmallBigger Checker, uint width, uint height)
         {
-            Checker[x, y] = true;
+			uint x, y, myStackSize = 0;
 
-            uint Right = x + 1u;
-            uint Left = x - 1u;
-            uint Bottom = y + 1u;
-            uint Top = y - 1u;
+			for (x = 0; x < width; x++)
+			{
+				if (!Checker[x, 0]) { myStack[myStackSize++] = x; myStack[myStackSize++] = 0; Checker[x, 0] = true; }
+				if (!Checker[x, height - 1]) { myStack[myStackSize++] = x; myStack[myStackSize++] = height - 1; Checker[x, height - 1] = true; }
+			}
+			for (y = 0; y < height; y++)
+			{
+				if (!Checker[0, y]) { myStack[myStackSize++] = 0; myStack[myStackSize++] = y; Checker[0, y] = true; }
+				if (!Checker[width - 1, y]) { myStack[myStackSize++] = width - 1; myStack[myStackSize++] = y; Checker[width - 1, y] = true; }
+			}
 
-            if (Top < height && !Checker[x, Top])
-                BadSpaceFill(ref Checker, x, Top, width, height);
+			while (myStackSize > 0)
+			{
+				y = myStack[--myStackSize];
+				x = myStack[--myStackSize];
+				
+				//左方向
+				if (x > 0 && !Checker[x - 1, y])
+				{
+					myStack[myStackSize++] = x - 1;
+					myStack[myStackSize++] = y;
+					Checker[x - 1, y] = true;
+				}
 
-            if (Bottom < height && !Checker[x, Bottom])
-                BadSpaceFill(ref Checker, x, Bottom, width, height);
+				//下方向
+				if (y < height - 1 && !Checker[x, y + 1])
+				{
+					myStack[myStackSize++] = x;
+					myStack[myStackSize++] = y + 1;
+					Checker[x, y + 1] = true;
+				}
 
-            if (Left < width && !Checker[Left, y])
-                BadSpaceFill(ref Checker, Left, y, width, height);
+				//右方向
+				if (x < width - 1 && !Checker[x + 1, y])
+				{
+					myStack[myStackSize++] = x + 1;
+					myStack[myStackSize++] = y;
+					Checker[x + 1, y] = true;
+				}
 
-            if (Right < width && !Checker[Right, y])
-                BadSpaceFill(ref Checker, Right, y, Right, height);
-        }
+				//上方向
+				if (y > 0 && !Checker[x, y - 1])
+				{
+					myStack[myStackSize++] = x;
+					myStack[myStackSize++] = y - 1;
+					Checker[x, y - 1] = true;
+				}
+			}
+		}
 
         public int Calculate(sbyte[,] ScoreBoard, in ColoredBoardSmallBigger Painted, ref ColoredBoardSmallBigger Checker, uint x, uint y, uint width, uint height)
         {

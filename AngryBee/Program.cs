@@ -23,9 +23,10 @@ namespace AngryBee
 
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
-            var res = ai.Begin(2, game.setting,meBoard, enemyBoard, game.me, game.enemy);
+            var res = ai.Begin(2, game.setting, meBoard, enemyBoard, game.me, game.enemy);
 
             sw.Stop();
+			Console.ForegroundColor = ConsoleColor.White;
 
             for (int i = 0; i < game.setting.ScoreBoard.GetLength(0); ++i)
             {
