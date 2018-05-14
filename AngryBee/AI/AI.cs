@@ -25,7 +25,7 @@ namespace AngryBee.AI
             if (deepness == 0)
             {
                 ends++;
-                return Tuple.Create(PointEvaluator.Calculate(ScoreBoard, MeBoard, 0), MeBoard, EnemyBoard);
+                return Tuple.Create(PointEvaluator.Calculate(ScoreBoard, MeBoard, 0) - PointEvaluator.Calculate(ScoreBoard, EnemyBoard, 0), MeBoard, EnemyBoard);
             }
 
             Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> result = Tuple.Create( alpha , new ColoredBoardSmallBigger(), new ColoredBoardSmallBigger());
