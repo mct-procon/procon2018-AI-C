@@ -35,18 +35,28 @@ namespace AngryBee.Rule
                 return result;
             }
 
-            if(Me.Agent1 == Me.Agent2)
+            if (Me.Agent1 == Me.Agent2)
             {
-                result.Me1 = MovableResultType.EnemyIsHere;
-                result.Me2 = MovableResultType.EnemyIsHere;
-                return result;
+                if (EnemyField[Me.Agent1])
+                    result.Me1 = MovableResultType.EraseNeeded;
+                else if (EnemyField[Me.Agent2])
+                    result.Me2 = MovableResultType.EraseNeeded;
+
+                if (result.IsEraseNeeded)
+                    result.Me1 = MovableResultType.Ok;
+                else
+                {
+                    result.Me1 = MovableResultType.EnemyIsHere;
+                    result.Me2 = MovableResultType.EnemyIsHere;
+                }
             }
-
-            if (EnemyField[Me.Agent1])
-                result.Me1 = MovableResultType.EraseNeeded;
-            if (EnemyField[Me.Agent2])
-                result.Me2 = MovableResultType.EraseNeeded;
-
+            else
+            {
+                if (EnemyField[Me.Agent1])
+                    result.Me1 = MovableResultType.EraseNeeded;
+                if (EnemyField[Me.Agent2])
+                    result.Me2 = MovableResultType.EraseNeeded;
+            }
             return result;
         }
 
