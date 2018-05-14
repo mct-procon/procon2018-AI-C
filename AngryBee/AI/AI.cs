@@ -62,7 +62,6 @@ namespace AngryBee.AI
                         }
                         else
                             newMeBoard[newMe.Agent2] = true;
-
                         cache = Mini(deepness, WayEnumerator, newMeBoard, newEnBoard, newMe, Enemy, result.Item1, beta, ScoreBoard);
                     }
                     else
