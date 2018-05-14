@@ -34,61 +34,88 @@ namespace AngryBee.PointEvaluator
             return result;
         }
 
-		uint[] myStack = new uint[1024];	//x, yの順で入れる. y, xの順で取り出す. width * height以上のサイズにする.
-        public void BadSpaceFill(ref ColoredBoardSmallBigger Checker, uint width, uint height)
+		//uint[] myStack = new uint[1024];	//x, yの順で入れる. y, xの順で取り出す. width * height以上のサイズにする.
+        public unsafe void BadSpaceFill(ref ColoredBoardSmallBigger Checker, uint width, uint height)
         {
-			uint x, y, myStackSize = 0;
+            unchecked
+            {
+                Boards.Point* myStack = stackalloc Boards.Point[12 * 12];
 
-			for (x = 0; x < width; x++)
-			{
-				if (!Checker[x, 0]) { myStack[myStackSize++] = x; myStack[myStackSize++] = 0; Checker[x, 0] = true; }
-				if (!Checker[x, height - 1]) { myStack[myStackSize++] = x; myStack[myStackSize++] = height - 1; Checker[x, height - 1] = true; }
-			}
-			for (y = 0; y < height; y++)
-			{
-				if (!Checker[0, y]) { myStack[myStackSize++] = 0; myStack[myStackSize++] = y; Checker[0, y] = true; }
-				if (!Checker[width - 1, y]) { myStack[myStackSize++] = width - 1; myStack[myStackSize++] = y; Checker[width - 1, y] = true; }
-			}
+                Point point;
+                uint x, y, searchTo = 0, myStackSize = 0;
 
-			while (myStackSize > 0)
-			{
-				y = myStack[--myStackSize];
-				x = myStack[--myStackSize];
-				
-				//左方向
-				if (x > 0 && !Checker[x - 1, y])
-				{
-					myStack[myStackSize++] = x - 1;
-					myStack[myStackSize++] = y;
-					Checker[x - 1, y] = true;
-				}
+                searchTo = height - 1;
+                for (x = 0; x < width; x++)
+                {
+                    if (!Checker[x, 0])
+                    {
+                        myStack[myStackSize++] = new Point(x, 0);
+                        Checker[x, 0] = true;
+                    }
+                    if (!Checker[x, searchTo])
+                    {
+                        myStack[myStackSize++] = new Point(x, searchTo);
+                        Checker[x, searchTo] = true;
+                    }
+                }
 
-				//下方向
-				if (y < height - 1 && !Checker[x, y + 1])
-				{
-					myStack[myStackSize++] = x;
-					myStack[myStackSize++] = y + 1;
-					Checker[x, y + 1] = true;
-				}
+                searchTo = width - 1;
+                for (y = 0; y < height; y++)
+                {
+                    if (!Checker[0, y])
+                    {
+                        myStack[myStackSize++] = new Point(0, y);
+                        Checker[0, y] = true;
+                    }
+                    if (!Checker[searchTo, y])
+                    {
+                        myStack[myStackSize++] = new Point(searchTo, y);
+                        Checker[searchTo, y] = true;
+                    }
+                }
 
-				//右方向
-				if (x < width - 1 && !Checker[x + 1, y])
-				{
-					myStack[myStackSize++] = x + 1;
-					myStack[myStackSize++] = y;
-					Checker[x + 1, y] = true;
-				}
+                while (myStackSize > 0)
+                {
+                    point = myStack[--myStackSize];
+                    x = point.X;
+                    y = point.Y;
 
-				//上方向
-				if (y > 0 && !Checker[x, y - 1])
-				{
-					myStack[myStackSize++] = x;
-					myStack[myStackSize++] = y - 1;
-					Checker[x, y - 1] = true;
-				}
-			}
+                    //左方向
+                    searchTo = x - 1;
+                    if (searchTo < width && !Checker[searchTo, y])
+                    {
+                        myStack[myStackSize++] = new Point(searchTo, y);
+                        Checker[searchTo, y] = true;
+                    }
+
+                    //下方向
+                    searchTo = y + 1;
+                    if (searchTo < height && !Checker[x, searchTo])
+                    {
+                        myStack[myStackSize++] = new Point(x, searchTo);
+                        Checker[x, searchTo] = true;
+                    }
+
+                    //右方向
+                    searchTo = x + 1;
+                    if (searchTo < width && !Checker[searchTo, y])
+                    {
+                        myStack[myStackSize++] = new Point(searchTo, y);
+                        Checker[searchTo, y] = true;
+                    }
+
+                    //上方向
+                    searchTo = y - 1;
+                    if (searchTo < height && !Checker[x, searchTo])
+                    {
+                        myStack[myStackSize++] = new Point(x, searchTo);
+                        Checker[x, searchTo] = true;
+                    }
+                }
+            }
 		}
 
+        [Obsolete("too slow")]
         public int Calculate(sbyte[,] ScoreBoard, in ColoredBoardSmallBigger Painted, ref ColoredBoardSmallBigger Checker, uint x, uint y, uint width, uint height)
         {
             unchecked
