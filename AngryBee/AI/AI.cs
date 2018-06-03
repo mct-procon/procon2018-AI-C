@@ -32,6 +32,9 @@ namespace AngryBee.AI
             for (int i = 0; i < WayEnumerator.Length; ++i)
                 for (int m = 0; m < WayEnumerator.Length; ++m)
                 {
+                    if (WayEnumerator[i] == WayEnumerator[m])
+                        continue;
+
                     Player newMe = Me;
                     newMe.Agent1 += WayEnumerator[i];
                     newMe.Agent2 += WayEnumerator[m];
@@ -87,6 +90,9 @@ namespace AngryBee.AI
             for (int i = 0; i < WayEnumerator.Length; ++i)
                 for (int m = 0; m < WayEnumerator.Length; ++m)
                 {
+                    if (WayEnumerator[i] == WayEnumerator[m])
+                        continue;
+
                     Player newEnemy = Enemy;
                     newEnemy.Agent1 += WayEnumerator[i];
                     newEnemy.Agent2 += WayEnumerator[m];
