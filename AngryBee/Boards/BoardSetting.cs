@@ -30,10 +30,8 @@ namespace AngryBee.Boards
             for (int y = 0; y < height; ++y)
                 for (int x = 0; x < widthDiv2; ++x)
                 {
-                    int value = rand.Next(16 * 3);
-                    value -= 16;
-                    if (value > 0)
-                        value /= 2;
+                    int value = rand.Next(10);
+                    value = (value == 0) ? - rand.Next(16) : rand.Next(16);
                     sbyte value_s = (sbyte)value;
                     result.ScoreBoard[x, y] = value_s;
                     result.ScoreBoard[result.ScoreBoard.GetLength(1) - 1 - x, y] = value_s;
