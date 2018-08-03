@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -19,6 +19,12 @@
 
   <ItemGroup>
     <PackageReference Include="System.Runtime.Intrinsics.Experimental" Version="4.5.0-rc1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="MCTProcon29Protocol">
+      <HintPath>..\..\procon2018-protocol\MCTProcon29Protocol\MCTProcon29Protocol\bin\Release\netstandard2.0\MCTProcon29Protocol.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

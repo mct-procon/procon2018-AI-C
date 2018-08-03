@@ -1,12 +1,61 @@
 ﻿using System;
+using MCTProcon29Protocol;
+using MCTProcon29Protocol.Methods;
 
 namespace AngryBee
 {
-    class Program
+    class Program : IIPCClientReader
     {
+        IPCManager manager;
+        bool[] calledFlag;
+        Boards.BoardSetting board;
+
+        public Program()
+        {
+            manager = new IPCManager(this);
+            calledFlag = new bool[7];
+            for (int i = 0; i < 7; i++) { calledFlag[i] = false; }
+        }
+
+
+        public void OnGameInit(GameInit init)
+        {
+            calledFlag[0] = true;
+        }
+
+        public void OnTurnStart(TurnStart turn)
+        {
+            calledFlag[1] = true;
+        }
+
+        public void OnTurnEnd(TurnEnd turn)
+        {
+            calledFlag[2] = true;
+        }
+
+        public void OnGameEnd(GameEnd end)
+        {
+            calledFlag[3] = true;
+        }
+
+        public void OnPause(Pause pause)
+        {
+            calledFlag[4] = true;
+        }
+
+        public void OnInterrupt(Interrupt interrupt)
+        {
+            calledFlag[5] = true;
+        }
+
+        public void OnRebaseByUser(RebaseByUser rebase)
+        {
+            calledFlag[6] = true;
+        }
+
         static void Main(string[] args)
         {
-            byte width = 12;
+            /*byte width = 12;
             byte height = 12;
 
             var ai = new AI.AI();
@@ -23,7 +72,7 @@ namespace AngryBee
 
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
-            var res = ai.Begin(2, game.setting, meBoard, enemyBoard, game.me, game.enemy);
+            var res = ai.Begin(3, game.setting, meBoard, enemyBoard, game.me, game.enemy);
 
             sw.Stop();
 			Console.ForegroundColor = ConsoleColor.White;
@@ -77,7 +126,7 @@ namespace AngryBee
             }
 
             Console.WriteLine("End Nodes:{0}[nodes]", ai.ends);
-            Console.WriteLine("Time Elasped:{0}[ms]", sw.ElapsedMilliseconds);
+            Console.WriteLine("Time Elasped:{0}[ms]", sw.ElapsedMilliseconds);*/
         }
     }
 }

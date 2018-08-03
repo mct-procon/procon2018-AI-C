@@ -12,6 +12,12 @@ namespace AngryBee.Boards
         public int Height { get; set; }
 
         private BoardSetting() { }
+        public BoardSetting(sbyte[,] ScoreBoard, int Width, int Height)
+        {
+            this.ScoreBoard = ScoreBoard;
+            this.Width = Width;
+            this.Height = Height;
+        }
 
         public static (BoardSetting setting, Player me, Player enemy) Generate(byte height = 12, byte width = 12)
         {
