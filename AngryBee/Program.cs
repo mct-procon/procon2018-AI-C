@@ -18,8 +18,8 @@ namespace AngryBee
             manager = new IPCManager(this);
             calledFlag = new bool[7];
             for (int i = 0; i < 7; i++) { calledFlag[i] = false; }
-        }
 
+        }
 
         public void OnGameInit(GameInit init)
         {
@@ -38,6 +38,8 @@ namespace AngryBee
             Me2 = new Boards.Point(turn.MeAgent2.X, turn.MeAgent2.Y);
             Enemy1 = new Boards.Point(turn.EnemyAgent1.X, turn.EnemyAgent1.Y);
             Enemy2 = new Boards.Point(turn.EnemyAgent2.X, turn.EnemyAgent2.Y);
+
+            //TODO: Boads.ColoredBoardSmallBiggerへのキャスト
             //MeBoard = turn.MeColoredBoard;
             //EnemyBoard = turn.EnemyColoredBoard;
         }
@@ -71,6 +73,7 @@ namespace AngryBee
 
         static void Main(string[] args)
         {
+            Program program = new Program();
             var ai = new AI.AI();
 
             while (true)
@@ -79,7 +82,9 @@ namespace AngryBee
                 lock (calledFlag) { for (i = 0; i < 7; i++) { if (calledFlag[i]) { break; } } }
                 if (i == 1)
                 {
+                    //TODO: ai.Beginの戻り値を「指し手」にする。
                     var res = ai.Begin(2, board, MeBoard, EnemyBoard, new Boards.Player(Me1, Me2), new Boards.Player(Enemy1, Enemy2));
+                    manager.Write(DataKind.Decided, res);
                 }
                 if (i == 3) { break; }
                 lock (calledFlag) { for (i = 0; i < 7; i++) { calledFlag[i] = false; } }

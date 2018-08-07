@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using MCTProcon29Protocol.Methods;
 
 namespace AngryBee.AI
 {
@@ -14,15 +15,22 @@ namespace AngryBee.AI
 
         public int ends = 0;
 
-        public Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> Begin(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy)
+        //1ターン = 深さ2
+        public Tuple<int, Decided> Begin(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy)
         {
-            return Mini(deepness, setting, MeBoard, EnemyBoard, Me, Enemy, -int.MaxValue, int.MaxValue);
+            return Max(deepness, setting, MeBoard, EnemyBoard, Me, Enemy, -int.MaxValue, int.MaxValue);
         }
 
-        public Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> Max(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta)
+        //Meが動く
+        public Tuple<int, Decided> Max(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta)
         {
-            Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> result = Tuple.Create(int.MinValue, new ColoredBoardSmallBigger(), new ColoredBoardSmallBigger());
-            deepness--;
+            if (deepness == 0)
+            {
+                ends++;
+                return Tuple.Create(PointEvaluator.Calculate(setting.ScoreBoard, MeBoard, 0) - PointEvaluator.Calculate(setting.ScoreBoard, EnemyBoard, 0), new Decided());
+            }
+
+            Tuple<int, Decided> result = Tuple.Create(int.MinValue, new Decided());
 
             List<Player> nextMe = new List<Player>();
             Player Killer = new Player(new Point(114, 114), new Point(114, 114));
@@ -38,7 +46,7 @@ namespace AngryBee.AI
 
                 if (!movable.IsMovable) continue;
 
-                Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> cache = null;
+                Tuple<int, Decided> cache = null;
                 var newMeBoard = MeBoard;
 
                 if (movable.IsEraseNeeded)
@@ -61,13 +69,13 @@ namespace AngryBee.AI
                     else
                         newMeBoard[newMe.Agent2] = true;
 
-                    cache = Mini(deepness, setting, newMeBoard, newEnBoard, newMe, Enemy, Math.Max(result.Item1, alpha), beta);
+                    cache = Mini(deepness - 1, setting, newMeBoard, newEnBoard, newMe, Enemy, Math.Max(result.Item1, alpha), beta);
                 }
                 else
                 {
                     newMeBoard[newMe.Agent1] = true;
                     newMeBoard[newMe.Agent2] = true;
-                    cache = Mini(deepness, setting, newMeBoard, EnemyBoard, newMe, Enemy, Math.Max(result.Item1, alpha), beta);
+                    cache = Mini(deepness - 1, setting, newMeBoard, EnemyBoard, newMe, Enemy, Math.Max(result.Item1, alpha), beta);
                 }
 
                 if (result.Item1 < cache.Item1)
@@ -79,15 +87,16 @@ namespace AngryBee.AI
             return result;
         }
 
-        public Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> Mini(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta)
+        //Enemyが動く
+        public Tuple<int, Decided> Mini(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta)
         {
             if (deepness == 0)
             {
                 ends++;
-                return Tuple.Create(PointEvaluator.Calculate(setting.ScoreBoard, MeBoard, 0) - PointEvaluator.Calculate(setting.ScoreBoard, EnemyBoard, 0), MeBoard, EnemyBoard);
+                return Tuple.Create(PointEvaluator.Calculate(setting.ScoreBoard, MeBoard, 0) - PointEvaluator.Calculate(setting.ScoreBoard, EnemyBoard, 0), new Decided());
             }
 
-            Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> result = Tuple.Create(int.MaxValue, new ColoredBoardSmallBigger(), new ColoredBoardSmallBigger());
+            Tuple<int, Decided> result = Tuple.Create(int.MaxValue, new Decided());
 
             List<Player> nextEnemy = new List<Player>();
             Player Killer = new Player(new Point(114, 114), new Point(114, 114));
@@ -104,7 +113,7 @@ namespace AngryBee.AI
                 if (!movable.IsMovable) continue;
 
 
-                Tuple<int, ColoredBoardSmallBigger, ColoredBoardSmallBigger> cache = null;
+                Tuple<int, Decided> cache = null;
                 var newEnBoard = EnemyBoard;
 
                 if (movable.IsEraseNeeded)
@@ -128,13 +137,13 @@ namespace AngryBee.AI
                         newEnBoard[newEnemy.Agent2] = true;
 
 
-                    cache = Max(deepness, setting, newMeBoard, newEnBoard, Me, newEnemy, alpha, Math.Min(result.Item1, beta));
+                    cache = Max(deepness - 1, setting, newMeBoard, newEnBoard, Me, newEnemy, alpha, Math.Min(result.Item1, beta));
                 }
                 else
                 {
                     newEnBoard[newEnemy.Agent1] = true;
                     newEnBoard[newEnemy.Agent2] = true;
-                    cache = Max(deepness, setting, MeBoard, newEnBoard, Me, newEnemy, alpha, Math.Min(result.Item1, beta));
+                    cache = Max(deepness - 1, setting, MeBoard, newEnBoard, Me, newEnemy, alpha, Math.Min(result.Item1, beta));
                 }
 
                 if (result.Item1 > cache.Item1)
