@@ -6,9 +6,12 @@ namespace AngryBee
 {
     class Program : IIPCClientReader
     {
-        IPCManager manager;
-        bool[] calledFlag;
-        Boards.BoardSetting board;
+        static IPCManager manager;
+        static bool[] calledFlag;
+        static Boards.BoardSetting board;
+        static Boards.Point Me1, Me2, Enemy1, Enemy2;
+        static Boards.ColoredBoardSmallBigger MeBoard, EnemyBoard;
+        static int MeScore, EnemyScore;
 
         public Program()
         {
@@ -21,11 +24,22 @@ namespace AngryBee
         public void OnGameInit(GameInit init)
         {
             calledFlag[0] = true;
+            board = new Boards.BoardSetting(init.Board, init.BoardWidth, init.BoardHeight);
+            Me1 = new Boards.Point(init.MeAgent1.X, init.MeAgent2.Y);
+            Me2 = new Boards.Point(init.MeAgent2.X, init.MeAgent2.Y);
+            Enemy1 = new Boards.Point(init.EnemyAgent1.X, init.EnemyAgent1.Y);
+            Enemy2 = new Boards.Point(init.EnemyAgent2.X, init.EnemyAgent2.Y);
         }
 
         public void OnTurnStart(TurnStart turn)
         {
             calledFlag[1] = true;
+            Me1 = new Boards.Point(turn.MeAgent1.X, turn.MeAgent2.Y);
+            Me2 = new Boards.Point(turn.MeAgent2.X, turn.MeAgent2.Y);
+            Enemy1 = new Boards.Point(turn.EnemyAgent1.X, turn.EnemyAgent1.Y);
+            Enemy2 = new Boards.Point(turn.EnemyAgent2.X, turn.EnemyAgent2.Y);
+            //MeBoard = turn.MeColoredBoard;
+            //EnemyBoard = turn.EnemyColoredBoard;
         }
 
         public void OnTurnEnd(TurnEnd turn)
@@ -36,6 +50,8 @@ namespace AngryBee
         public void OnGameEnd(GameEnd end)
         {
             calledFlag[3] = true;
+            MeScore = end.MeScore;
+            EnemyScore = end.EnemyScore;
         }
 
         public void OnPause(Pause pause)
@@ -55,6 +71,20 @@ namespace AngryBee
 
         static void Main(string[] args)
         {
+            var ai = new AI.AI();
+
+            while (true)
+            {
+                int i;
+                lock (calledFlag) { for (i = 0; i < 7; i++) { if (calledFlag[i]) { break; } } }
+                if (i == 1)
+                {
+                    var res = ai.Begin(2, board, MeBoard, EnemyBoard, new Boards.Player(Me1, Me2), new Boards.Player(Enemy1, Enemy2));
+                }
+                if (i == 3) { break; }
+                lock (calledFlag) { for (i = 0; i < 7; i++) { calledFlag[i] = false; } }
+            }
+            
             /*byte width = 12;
             byte height = 12;
 

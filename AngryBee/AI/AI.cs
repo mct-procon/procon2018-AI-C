@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using MCTProcon29Protocol;
-using MCTProcon29Protocol.Methods;
 
 namespace AngryBee.AI
 {
