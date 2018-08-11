@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using AngryBee.Boards;
 using System.Runtime.Intrinsics.X86;
+using MCTProcon29Protocol;
 
 namespace AngryBee.PointEvaluator
 {
@@ -39,7 +40,7 @@ namespace AngryBee.PointEvaluator
         {
             unchecked
             {
-                Boards.Point* myStack = stackalloc Boards.Point[12 * 12];
+                Point* myStack = stackalloc Point[12 * 12];
 
                 Point point;
                 uint x, y, searchTo = 0, myStackSize = 0;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using MCTProcon29Protocol;
 
 namespace AngryBee.Boards
 {
@@ -58,22 +59,22 @@ namespace AngryBee.Boards
                 );
         }
 
-        [Obsolete("It is slower.")]
-        public ColoredBoard GetNewColoredBoard()
-        {
-            int count = Width * Height;
-            if (count < 64)
-                return new ColoredBoardSmall((ushort)Width, (ushort)Height);
-            else if (Width < 16 && Height < 16)
-                return new ColoredBoardSmallBigger((ushort)Width, (ushort)Height);
-            else if (Width < 32 && Height < 32)
-                return new ColoredBoardNormalSmaller((ushort)Width, (ushort)Height);
-            else if (Width < 64 && Height < 64)
-                return new ColoredBoardNormal((ushort)Width, (ushort)Height);
-            //else
-            //    return new ColoredBoardBig((ushort)Width, (ushort)Height);
+        //[Obsolete("It is slower.")]
+        //public ColoredBoard GetNewColoredBoard()
+        //{
+        //    int count = Width * Height;
+        //    if (count < 64)
+        //        return new ColoredBoardSmall((ushort)Width, (ushort)Height);
+        //    else if (Width < 16 && Height < 16)
+        //        return new ColoredBoardSmallBigger((ushort)Width, (ushort)Height);
+        //    else if (Width < 32 && Height < 32)
+        //        return new ColoredBoardNormalSmaller((ushort)Width, (ushort)Height);
+        //    else if (Width < 64 && Height < 64)
+        //        return new ColoredBoardNormal((ushort)Width, (ushort)Height);
+        //    //else
+        //    //    return new ColoredBoardBig((ushort)Width, (ushort)Height);
 
-            throw new NotSupportedException();
-        }
+        //    throw new NotSupportedException();
+        //}
     }
 }

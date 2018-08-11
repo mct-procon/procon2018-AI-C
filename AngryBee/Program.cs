@@ -9,8 +9,8 @@ namespace AngryBee
         static IPCManager manager;
         static bool[] calledFlag;
         static Boards.BoardSetting board;
-        static Boards.Point Me1, Me2, Enemy1, Enemy2;
-        static Boards.ColoredBoardSmallBigger MeBoard, EnemyBoard;
+        static Point Me1, Me2, Enemy1, Enemy2;
+        static ColoredBoardSmallBigger MeBoard, EnemyBoard;
         static int MeScore, EnemyScore;
 
         public Program()
@@ -25,23 +25,23 @@ namespace AngryBee
         {
             calledFlag[0] = true;
             board = new Boards.BoardSetting(init.Board, init.BoardWidth, init.BoardHeight);
-            Me1 = new Boards.Point(init.MeAgent1.X, init.MeAgent2.Y);
-            Me2 = new Boards.Point(init.MeAgent2.X, init.MeAgent2.Y);
-            Enemy1 = new Boards.Point(init.EnemyAgent1.X, init.EnemyAgent1.Y);
-            Enemy2 = new Boards.Point(init.EnemyAgent2.X, init.EnemyAgent2.Y);
+            Me1 = new Point(init.MeAgent1.X, init.MeAgent2.Y);
+            Me2 = new Point(init.MeAgent2.X, init.MeAgent2.Y);
+            Enemy1 = new Point(init.EnemyAgent1.X, init.EnemyAgent1.Y);
+            Enemy2 = new Point(init.EnemyAgent2.X, init.EnemyAgent2.Y);
         }
 
         public void OnTurnStart(TurnStart turn)
         {
             calledFlag[1] = true;
-            Me1 = new Boards.Point(turn.MeAgent1.X, turn.MeAgent2.Y);
-            Me2 = new Boards.Point(turn.MeAgent2.X, turn.MeAgent2.Y);
-            Enemy1 = new Boards.Point(turn.EnemyAgent1.X, turn.EnemyAgent1.Y);
-            Enemy2 = new Boards.Point(turn.EnemyAgent2.X, turn.EnemyAgent2.Y);
+            Me1 = new Point(turn.MeAgent1.X, turn.MeAgent2.Y);
+            Me2 = new Point(turn.MeAgent2.X, turn.MeAgent2.Y);
+            Enemy1 = new Point(turn.EnemyAgent1.X, turn.EnemyAgent1.Y);
+            Enemy2 = new Point(turn.EnemyAgent2.X, turn.EnemyAgent2.Y);
 
             //TODO: Boads.ColoredBoardSmallBiggerへのキャスト
-            //MeBoard = turn.MeColoredBoard;
-            //EnemyBoard = turn.EnemyColoredBoard;
+            MeBoard = turn.MeColoredBoard;
+            EnemyBoard = turn.EnemyColoredBoard;
         }
 
         public void OnTurnEnd(TurnEnd turn)

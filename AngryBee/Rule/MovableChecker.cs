@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using MCTProcon29Protocol;
 
 namespace AngryBee.Rule
 {

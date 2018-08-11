@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <Reference Include="MCTProcon29Protocol">
-      <HintPath>..\..\procon2018-protocol\MCTProcon29Protocol\MCTProcon29Protocol\bin\Release\netstandard2.0\MCTProcon29Protocol.dll</HintPath>
+      <HintPath>..\libs\MCTProcon29Protocol.dll</HintPath>
     </Reference>
   </ItemGroup>
 
