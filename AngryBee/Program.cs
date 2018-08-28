@@ -75,6 +75,14 @@ namespace AngryBee
         {
             Program program = new Program();
             var ai = new AI.AI();
+            int portId, maxDepth;
+
+            Console.WriteLine("ポート番号を入力（先手15000, 後手15001)＞");
+            portId = int.Parse(Console.ReadLine());
+            Console.WriteLine("探索の深さの上限を入力（深さ = ターン数 * 2, 5以下が目安）");
+            maxDepth = int.Parse(Console.ReadLine());
+
+            manager.Start(portId);
 
             while (true)
             {
@@ -83,7 +91,7 @@ namespace AngryBee
                 if (i == 1)
                 {
                     //TODO: ai.Beginの戻り値を「指し手」にする。
-                    var res = ai.Begin(2, board, MeBoard, EnemyBoard, new Boards.Player(Me1, Me2), new Boards.Player(Enemy1, Enemy2));
+                    var res = ai.Begin(maxDepth, board, MeBoard, EnemyBoard, new Boards.Player(Me1, Me2), new Boards.Player(Enemy1, Enemy2));
                     manager.Write(DataKind.Decided, res);
                 }
                 if (i == 3) { break; }
