@@ -12,7 +12,7 @@ namespace AngryBee.AI
         Rule.MovableChecker Checker = new Rule.MovableChecker();
         PointEvaluator.Normal PointEvaluator = new PointEvaluator.Normal();
 
-        (int DestX, int DestY)[] WayEnumerator = { (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1) };
+        VelocityPoint[] WayEnumerator = { (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1) };
 
         public int ends = 0;
 
@@ -39,9 +39,10 @@ namespace AngryBee.AI
 
             for (int i = 0; i < nextMe.Count; i++)
             {
+                var nextMeValue = nextMe[i].Value;
                 Player newMe = Me;
-                newMe.Agent1 = nextMe[i].Value.Agent1;
-                newMe.Agent2 = nextMe[i].Value.Agent2;
+                newMe.Agent1 += nextMeValue.Agent1;
+                newMe.Agent2 += nextMeValue.Agent2;
 
                 var movable = Checker.MovableCheck(MeBoard, EnemyBoard, newMe, Enemy);
 
@@ -82,7 +83,7 @@ namespace AngryBee.AI
                 if (result < cache.Item1)
                 {
                     result = cache.Item1;
-                    bestMove = new Decided(newMe.Agent1, newMe.Agent2);
+                    bestMove = new Decided(nextMeValue.Agent1, nextMeValue.Agent2);
                 }
                 if (result >= beta)
                 {
@@ -110,9 +111,10 @@ namespace AngryBee.AI
 
             for (int i = 0; i < nextEnemy.Count; i++)
             {
+                var nextEnemyValue = nextEnemy[i].Value;
                 Player newEnemy = Enemy;
-                newEnemy.Agent1 = nextEnemy[i].Value.Agent1;
-                newEnemy.Agent2 = nextEnemy[i].Value.Agent2;
+                newEnemy.Agent1 += nextEnemyValue.Agent1;
+                newEnemy.Agent2 += nextEnemyValue.Agent2;
 
                 var movable = Checker.MovableCheck(EnemyBoard, MeBoard, newEnemy, Me);
 
@@ -154,7 +156,7 @@ namespace AngryBee.AI
                 if (result > cache.Item1)
                 {
                     result = cache.Item1;
-                    bestMove = new Decided(newEnemy.Agent1, newEnemy.Agent2);
+                    bestMove = new Decided(nextEnemyValue.Agent1, nextEnemyValue.Agent2);
                 }
                 if (result <= alpha)
                     return new Tuple<int, Decided>(result, bestMove);
@@ -170,11 +172,11 @@ namespace AngryBee.AI
         //ルール1. Killer手があれば、それを優先する。(Killer手がなければ、Killer.Agent1 = (514, 514), Killer.Agent2 = (514, 514)のように範囲外の移動先を設定すること。)
         //ルール2. 次のmoveで得られる「タイルポイント」の合計値、が大きい移動(の組み合わせ)を優先する。
         //なお、ルールはMovableChecker.csに準ずるため、現在は、「タイル除去先にもう一方のエージェントが移動することはできない」として計算しています。
-        private List<KeyValuePair<int, Player>> MoveOrderling(in BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, in Player Killer)
+        private List<KeyValuePair<int, (VelocityPoint Agent1, VelocityPoint Agent2)>> MoveOrderling(in BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, in Player Killer)
         {
             uint width = MeBoard.Width;
             uint height = MeBoard.Height;
-            List<KeyValuePair<int, Player>> orderling = new List<KeyValuePair<int, Player>>();
+            List<KeyValuePair<int, (VelocityPoint, VelocityPoint)>> orderling = new List<KeyValuePair<int, (VelocityPoint, VelocityPoint)>>();
 
             for (int i = 0; i < WayEnumerator.Length; i++)
             {
@@ -205,7 +207,7 @@ namespace AngryBee.AI
                         }
                         score *= -1;
                     }
-                    orderling.Add(new KeyValuePair<int, Player>(score, newMe));
+                    orderling.Add(new KeyValuePair<int, (VelocityPoint, VelocityPoint)>(score, (WayEnumerator[i], WayEnumerator[m])));
                 }
             }
             orderling.Sort((a, b) => a.Key - b.Key);

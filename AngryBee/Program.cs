@@ -29,6 +29,8 @@ namespace AngryBee
             Me2 = new Point(init.MeAgent2.X, init.MeAgent2.Y);
             Enemy1 = new Point(init.EnemyAgent1.X, init.EnemyAgent1.Y);
             Enemy2 = new Point(init.EnemyAgent2.X, init.EnemyAgent2.Y);
+
+            Console.WriteLine("[IPC] GameInit Received.");
         }
 
         public void OnTurnStart(TurnStart turn)
@@ -42,11 +44,15 @@ namespace AngryBee
             //TODO: Boads.ColoredBoardSmallBiggerへのキャスト
             MeBoard = turn.MeColoredBoard;
             EnemyBoard = turn.EnemyColoredBoard;
+
+            Console.WriteLine("[IPC] TurnStart Received. Turn is " + turn.Turn.ToString());
         }
 
         public void OnTurnEnd(TurnEnd turn)
         {
             calledFlag[2] = true;
+
+            Console.WriteLine("[IPC] TurnEnd Received.");
         }
 
         public void OnGameEnd(GameEnd end)
@@ -54,6 +60,7 @@ namespace AngryBee
             calledFlag[3] = true;
             MeScore = end.MeScore;
             EnemyScore = end.EnemyScore;
+            Console.WriteLine("[IPC] GameEnd Received.");
         }
 
         public void OnPause(Pause pause)
@@ -84,18 +91,36 @@ namespace AngryBee
 
             manager.Start(portId);
 
+            {
+                var proc = System.Diagnostics.Process.GetCurrentProcess();
+                manager.Write(DataKind.Connect, new Connect(ProgramKind.AI) { ProcessId = proc.Id });
+                proc.Dispose();
+            }
+            Console.WriteLine("Sended Connect Method.");
+
+            Console.CancelKeyPress +=
+                (o, e) =>
+                {
+                    manager.ShutdownServer();
+                    System.Threading.Thread.Sleep(1000);
+                    Environment.Exit(0);
+                };
+
             while (true)
             {
                 int i;
-                lock (calledFlag) { for (i = 0; i < 7; i++) { if (calledFlag[i]) { break; } } }
+                for (i = 0; i < 7; i++) { if (calledFlag[i]) { break; } } 
                 if (i == 1)
                 {
+                    Console.WriteLine($"[AI] Thinking Start.");
                     //TODO: ai.Beginの戻り値を「指し手」にする。
                     var res = ai.Begin(maxDepth, board, MeBoard, EnemyBoard, new Boards.Player(Me1, Me2), new Boards.Player(Enemy1, Enemy2));
-                    manager.Write(DataKind.Decided, res);
+                    manager.Write(DataKind.Decided, res.Item2);
+                    Console.WriteLine($"[AI] Thinking End, Decided sended.");
                 }
                 if (i == 3) { break; }
-                lock (calledFlag) { for (i = 0; i < 7; i++) { calledFlag[i] = false; } }
+                if(i != 7)
+                    calledFlag[i] = false;
             }
             
             /*byte width = 12;
