@@ -71,41 +71,26 @@ namespace AngryBee
             calledFlag[6] = true;
         }
 
+        //合法手と仮定して考える感じで (Me…移動したプレイヤー)
+        public static void UpdateField(ref ColoredBoardSmallBigger MeBoard, ref ColoredBoardSmallBigger EnemyBoard, Boards.Player Me, Boards.Player Enemy)
+        {
+            if (EnemyBoard[Me.Agent1]) { EnemyBoard[Me.Agent1] = false; }
+            else { MeBoard[Me.Agent1] = true; }
+            if (EnemyBoard[Me.Agent2]) { EnemyBoard[Me.Agent2] = false; }
+            else { MeBoard[Me.Agent2] = true; }
+        }
+
         static void Main(string[] args)
         {
-            Program program = new Program();
-            var ai = new AI.AI();
-            int portId, maxDepth;
-
-            Console.WriteLine("ポート番号を入力（先手15000, 後手15001)＞");
-            portId = int.Parse(Console.ReadLine());
-            Console.WriteLine("探索の深さの上限を入力（深さ = ターン数 * 2, 5以下が目安）");
-            maxDepth = int.Parse(Console.ReadLine());
-
-            manager.Start(portId);
-
-            while (true)
-            {
-                int i;
-                lock (calledFlag) { for (i = 0; i < 7; i++) { if (calledFlag[i]) { break; } } }
-                if (i == 1)
-                {
-                    //TODO: ai.Beginの戻り値を「指し手」にする。
-                    var res = ai.Begin(maxDepth, board, MeBoard, EnemyBoard, new Boards.Player(Me1, Me2), new Boards.Player(Enemy1, Enemy2));
-                    manager.Write(DataKind.Decided, res);
-                }
-                if (i == 3) { break; }
-                lock (calledFlag) { for (i = 0; i < 7; i++) { calledFlag[i] = false; } }
-            }
-            
-            /*byte width = 12;
+            byte width = 12;
             byte height = 12;
 
-            var ai = new AI.AI();
+            var com1 = new AI.AI();
+            var com2 = new AI.AI();
             var game = Boards.BoardSetting.Generate(height, width);
 
-            var meBoard = new Boards.ColoredBoardSmallBigger(height, width);
-            var enemyBoard = new Boards.ColoredBoardSmallBigger(height, width);
+            var meBoard = new ColoredBoardSmallBigger(height, width);
+            var enemyBoard = new ColoredBoardSmallBigger(height, width);
 
             meBoard[game.me.Agent1] = true;
             meBoard[game.me.Agent2] = true;
@@ -113,63 +98,75 @@ namespace AngryBee
             enemyBoard[game.enemy.Agent1] = true;
             enemyBoard[game.enemy.Agent2] = true;
 
-            var sw = System.Diagnostics.Stopwatch.StartNew();
-
-            var res = ai.Begin(3, game.setting, meBoard, enemyBoard, game.me, game.enemy);
-
-            sw.Stop();
-			Console.ForegroundColor = ConsoleColor.White;
-
-            for (int i = 0; i < game.setting.ScoreBoard.GetLength(0); ++i)
+            Console.WriteLine("ターン数を入力＞");
+            int maxTurn = int.Parse(Console.ReadLine());
+            for (int turn = 0; turn < maxTurn; turn++)
             {
-                for (int m = 0; m < game.setting.ScoreBoard.GetLength(1); ++m)
+                //初期化
+                com1.ends = 0;
+                com2.ends = 0;
+                var sw = new System.Diagnostics.Stopwatch();
+                sw.Start();
+
+                //計算 (深さ = ターン数 * 2)
+                Tuple<int, Decided> res = null;
+                if (turn % 2 == 0)
                 {
-                    string strr = game.setting.ScoreBoard[m, i].ToString();
-                    int hoge = 4 - strr.Length;
-
-                    if (meBoard[(uint)m, (uint)i])
-                        Console.BackgroundColor = ConsoleColor.DarkRed;
-                    else if (enemyBoard[(uint)m, (uint)i])
-                        Console.BackgroundColor = ConsoleColor.DarkBlue;
-                    else
-                        Console.BackgroundColor = ConsoleColor.Black;
-
-                    for (int n = 0; n < hoge; ++n)
-                        Console.Write(" ");
-                    Console.Write(strr);
+                    res = com1.Begin(4, game.setting, meBoard, enemyBoard, game.me, game.enemy);
+                    UpdateField(ref meBoard, ref enemyBoard, new Boards.Player(res.Item2.MeAgent1, res.Item2.MeAgent2), game.enemy);
+                    game.me = new Boards.Player(res.Item2.MeAgent1, res.Item2.MeAgent2);
                 }
+                else
+                {
+                    res = com2.Begin(4, game.setting, enemyBoard, meBoard, game.enemy, game.me);
+                    UpdateField(ref enemyBoard, ref meBoard, new Boards.Player(res.Item2.MeAgent1, res.Item2.MeAgent2), game.me);
+                    game.enemy = new Boards.Player(res.Item2.MeAgent1, res.Item2.MeAgent2);
+                }
+                sw.Stop();
+
+                //表示
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine(((turn % 2 == 0) ? "先" : "後") + "手番");
+                Console.WriteLine("着手(Y1, X1):" + res.Item2.MeAgent1.Y + ", " + res.Item2.MeAgent1.X);
+                Console.WriteLine("着手(Y2, X2):" + res.Item2.MeAgent2.Y + ", " + res.Item2.MeAgent2.X);
+                for (int i = 0; i < game.setting.ScoreBoard.GetLength(0); ++i)
+                {
+                    for (int m = 0; m < game.setting.ScoreBoard.GetLength(1); ++m)
+                    {
+                        string strr = game.setting.ScoreBoard[m, i].ToString();
+                        int hoge = 4 - strr.Length;
+
+                        if (meBoard[(uint)m, (uint)i])
+                            Console.BackgroundColor = ConsoleColor.DarkRed;
+                        else if (enemyBoard[(uint)m, (uint)i])
+                            Console.BackgroundColor = ConsoleColor.DarkBlue;
+                        else
+                            Console.BackgroundColor = ConsoleColor.Black;
+
+                        Point point = new Point((uint)m, (uint)i);
+                        if (game.me.Agent1 == point) { Console.BackgroundColor = ConsoleColor.Red; }
+                        if (game.me.Agent2 == point) { Console.BackgroundColor = ConsoleColor.Red; }
+                        if (game.enemy.Agent1 == point) { Console.BackgroundColor = ConsoleColor.Blue; }
+                        if (game.enemy.Agent2 == point) { Console.BackgroundColor = ConsoleColor.Blue; }
+
+                        for (int n = 0; n < hoge; ++n)
+                            Console.Write(" ");
+                        Console.Write(strr);
+                    }
+                    Console.WriteLine();
+                }
+
+                Console.WriteLine();
+
+                Console.WriteLine("End Nodes:{0}[nodes]", (turn % 2 == 0) ? com1.ends : com2.ends);
+                Console.WriteLine("Time Elasped:{0}[ms]", sw.ElapsedMilliseconds);
+
+                PointEvaluator.Normal calcPoint = new PointEvaluator.Normal();
+                Console.WriteLine("先手スコア = " + calcPoint.Calculate(game.setting.ScoreBoard, meBoard, 0).ToString());
+                Console.WriteLine("後手スコア = " + calcPoint.Calculate(game.setting.ScoreBoard, enemyBoard, 0).ToString());
                 Console.WriteLine();
             }
-
-            Console.WriteLine();
-
-            //Console.WriteLine(res);
-
-            Console.WriteLine(res.Item1);
-
-            for (int i = 0; i < game.setting.ScoreBoard.GetLength(1); ++i)
-            {
-                for (int m = 0; m < game.setting.ScoreBoard.GetLength(0); ++m)
-                {
-                    string strr = game.setting.ScoreBoard[m, i].ToString();
-                    int hoge = 4 - strr.Length;
-
-                    if (res.Item2[(uint)m, (uint)i])
-                        Console.BackgroundColor = ConsoleColor.DarkRed;
-                    else if (res.Item3[(uint)m, (uint)i])
-                        Console.BackgroundColor = ConsoleColor.DarkBlue;
-                    else
-                        Console.BackgroundColor = ConsoleColor.Black;
-
-                    for (int n = 0; n < hoge; ++n)
-                        Console.Write(" ");
-                    Console.Write(strr);
-                }
-                Console.WriteLine();
-            }
-
-            Console.WriteLine("End Nodes:{0}[nodes]", ai.ends);
-            Console.WriteLine("Time Elasped:{0}[ms]", sw.ElapsedMilliseconds);*/
         }
     }
 }
