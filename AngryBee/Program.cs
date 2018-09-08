@@ -10,25 +10,74 @@ namespace AngryBee
         static bool[] calledFlag;
         static Boards.BoardSetting board;
         static Point Me1, Me2, Enemy1, Enemy2;
-        static ColoredBoardSmallBigger MeBoard, EnemyBoard;
+        static ColoredBoardSmallBigger MeBoard , EnemyBoard;
         static int MeScore, EnemyScore;
+        static object SyncRoot = new object();
 
         public Program()
         {
             manager = new IPCManager(this);
             calledFlag = new bool[7];
             for (int i = 0; i < 7; i++) { calledFlag[i] = false; }
+        }
 
+        public static void DumpBoard()
+        {
+            for (uint y = 0; y < board.Height; ++y)
+            {
+                for (uint x = 0; x < board.Width; ++x)
+                {
+                    if((x == Me1.X && y == Me1.Y) || (x == Me2.X && y == Me2.Y))
+                    {
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.BackgroundColor = ConsoleColor.Red;
+                    }
+                    else if ((x == Enemy1.X && y == Enemy1.Y) || (x == Enemy2.X && y == Enemy2.Y))
+                    {
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.BackgroundColor = ConsoleColor.Blue;
+                    }
+                    if (MeBoard[x,y])
+                    {
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.BackgroundColor = ConsoleColor.DarkRed;
+                    }
+                    else if (EnemyBoard[x, y])
+                    {
+
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.BackgroundColor = ConsoleColor.DarkBlue;
+                    }
+                    else if (((x + y) & 1) == 0)
+                    {
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.BackgroundColor = ConsoleColor.Black;
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Black;
+                        Console.BackgroundColor = ConsoleColor.White;
+                    }
+                    string str = board.ScoreBoard[x, y].ToString();
+                    if (str.Length != 3)
+                        Console.Write(new string(' ', 3 - str.Length));
+                    Console.Write(str);
+                }
+                Console.WriteLine();
+            }
         }
 
         public void OnGameInit(GameInit init)
         {
             calledFlag[0] = true;
             board = new Boards.BoardSetting(init.Board, init.BoardWidth, init.BoardHeight);
-            Me1 = new Point(init.MeAgent1.X, init.MeAgent2.Y);
-            Me2 = new Point(init.MeAgent2.X, init.MeAgent2.Y);
-            Enemy1 = new Point(init.EnemyAgent1.X, init.EnemyAgent1.Y);
-            Enemy2 = new Point(init.EnemyAgent2.X, init.EnemyAgent2.Y);
+            Me1 = init.MeAgent1;
+            Me2 = init.MeAgent2;
+            Enemy1 = init.EnemyAgent1;
+            Enemy2 = init.EnemyAgent2;
+
+            MeBoard = new ColoredBoardSmallBigger();
+            EnemyBoard = new ColoredBoardSmallBigger();
 
             Console.WriteLine("[IPC] GameInit Received.");
         }
@@ -36,14 +85,19 @@ namespace AngryBee
         public void OnTurnStart(TurnStart turn)
         {
             calledFlag[1] = true;
-            Me1 = new Point(turn.MeAgent1.X, turn.MeAgent2.Y);
-            Me2 = new Point(turn.MeAgent2.X, turn.MeAgent2.Y);
-            Enemy1 = new Point(turn.EnemyAgent1.X, turn.EnemyAgent1.Y);
-            Enemy2 = new Point(turn.EnemyAgent2.X, turn.EnemyAgent2.Y);
+            Me1 = turn.MeAgent1;
+            Me2 = turn.MeAgent2;
+            Enemy1 = turn.EnemyAgent1;
+            Enemy2 = turn.EnemyAgent2;
 
             //TODO: Boads.ColoredBoardSmallBiggerへのキャスト
             MeBoard = turn.MeColoredBoard;
             EnemyBoard = turn.EnemyColoredBoard;
+
+            lock (SyncRoot)
+            {
+                DumpBoard();
+            }
 
             Console.WriteLine("[IPC] TurnStart Received. Turn is " + turn.Turn.ToString());
         }
@@ -112,11 +166,13 @@ namespace AngryBee
                 for (i = 0; i < 7; i++) { if (calledFlag[i]) { break; } } 
                 if (i == 1)
                 {
-                    Console.WriteLine($"[AI] Thinking Start.");
                     //TODO: ai.Beginの戻り値を「指し手」にする。
                     var res = ai.Begin(maxDepth, board, MeBoard, EnemyBoard, new Boards.Player(Me1, Me2), new Boards.Player(Enemy1, Enemy2));
                     manager.Write(DataKind.Decided, res.Item2);
-                    Console.WriteLine($"[AI] Thinking End, Decided sended.");
+                    lock (SyncRoot)
+                    {
+                        Console.WriteLine($"{res.Item2.MeAgent1.X}, {res.Item2.MeAgent1.Y}   {res.Item2.MeAgent2.X}, {res.Item2.MeAgent2.Y}");
+                    }
                 }
                 if (i == 3) { break; }
                 if(i != 7)
