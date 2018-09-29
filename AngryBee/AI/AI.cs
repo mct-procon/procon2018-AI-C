@@ -7,7 +7,7 @@ using MCTProcon29Protocol;
 
 namespace AngryBee.AI
 {
-    public class AI
+    public class AI : MCTProcon29Protocol.AIFramework.AIBase
     {
         Rule.MovableChecker Checker = new Rule.MovableChecker();
         PointEvaluator.Normal PointEvaluator = new PointEvaluator.Normal();
@@ -16,26 +16,94 @@ namespace AngryBee.AI
 
         public int ends = 0;
 
-        //1ターン = 深さ2
-        public Tuple<int, Decided> Begin(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy)
+        public int StartDepth { get; set; } = 1;
+
+        public AI(int startDepth)
         {
-            return Max(deepness, setting, MeBoard, EnemyBoard, Me, Enemy, -int.MaxValue, int.MaxValue);
+            StartDepth = startDepth;
+        }
+
+        //1ターン = 深さ2
+        protected override void Solve()
+        {
+            int alpha = int.MinValue + 1;
+            int beta = int.MaxValue;
+
+            var deepness = StartDepth;
+
+            int result = int.MinValue;
+
+            Player Killer = new Player(new Point(114, 114), new Point(114, 114));
+            var nextMe = MoveOrderling(ScoreBoard, MyBoard, EnemyBoard, new Player(MyAgent1, MyAgent2), new Player(EnemyAgent1, EnemyAgent2), Killer);
+
+            for (int i = 0; i < nextMe.Count; i++)
+            {
+                var nextMeValue = nextMe[i].Value;
+                Player newMe = new Player(MyAgent1, MyAgent2);
+                newMe.Agent1 += nextMeValue.Agent1;
+                newMe.Agent2 += nextMeValue.Agent2;
+
+                var movable = Checker.MovableCheck(MyBoard, EnemyBoard, newMe, new Player(EnemyAgent1, EnemyAgent2));
+
+                if (!movable.IsMovable) continue;
+
+                int current = 0;
+                var newMeBoard = MyBoard;
+
+                if (movable.IsEraseNeeded)
+                {
+                    var newEnBoard = EnemyBoard;
+
+                    if (movable.Me1 == Rule.MovableResultType.EraseNeeded)
+                    {
+                        newEnBoard[newMe.Agent1] = false;
+                        newMe.Agent1 = MyAgent1;
+                    }
+                    else
+                        newMeBoard[newMe.Agent1] = true;
+
+                    if (movable.Me2 == Rule.MovableResultType.EraseNeeded)
+                    {
+                        newEnBoard[newMe.Agent2] = false;
+                        newMe.Agent2 = MyAgent2;
+                    }
+                    else
+                        newMeBoard[newMe.Agent2] = true;
+
+                    current = Mini(deepness - 1, ScoreBoard, newMeBoard, newEnBoard, newMe, new Player(EnemyAgent1, EnemyAgent2), Math.Max(result, alpha), beta);
+                }
+                else
+                {
+                    newMeBoard[newMe.Agent1] = true;
+                    newMeBoard[newMe.Agent2] = true;
+                    current = Mini(deepness - 1, ScoreBoard, newMeBoard, EnemyBoard, newMe, new Player(EnemyAgent1, EnemyAgent2), Math.Max(result, alpha), beta);
+                }
+
+                if (result < current)
+                {
+                    result = current;
+                    SolverResult = new Decided(nextMeValue.Agent1, nextMeValue.Agent2);
+                }
+                if (result >= beta)
+                {
+                    return;
+                }
+            }
         }
 
         //Meが動く
-        public Tuple<int, Decided> Max(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta)
+        public int Max(int deepness, sbyte[,] ScoreBoard, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta)
         {
             if (deepness == 0)
             {
                 ends++;
-                return new Tuple<int, Decided>(PointEvaluator.Calculate(setting.ScoreBoard, MeBoard, 0) - PointEvaluator.Calculate(setting.ScoreBoard, EnemyBoard, 0), null);
+                return PointEvaluator.Calculate(ScoreBoard, MeBoard, 0) - PointEvaluator.Calculate(ScoreBoard, EnemyBoard, 0);
             }
 
             int result = int.MinValue;
-            Decided bestMove = null;
 
             Player Killer = new Player(new Point(114, 114), new Point(114, 114));
-            var nextMe = MoveOrderling(setting, MeBoard, EnemyBoard, Me, Enemy, Killer);
+            var nextMe = MoveOrderling(ScoreBoard, MeBoard, EnemyBoard, Me, Enemy, Killer);
 
             for (int i = 0; i < nextMe.Count; i++)
             {
@@ -48,7 +116,7 @@ namespace AngryBee.AI
 
                 if (!movable.IsMovable) continue;
 
-                Tuple<int, Decided> cache;
+                int current = 0;
                 var newMeBoard = MeBoard;
 
                 if (movable.IsEraseNeeded)
@@ -71,43 +139,41 @@ namespace AngryBee.AI
                     else
                         newMeBoard[newMe.Agent2] = true;
 
-                    cache = Mini(deepness - 1, setting, newMeBoard, newEnBoard, newMe, Enemy, Math.Max(result, alpha), beta);
+                    current = Mini(deepness - 1, ScoreBoard, newMeBoard, newEnBoard, newMe, Enemy, Math.Max(result, alpha), beta);
                 }
                 else
                 {
                     newMeBoard[newMe.Agent1] = true;
                     newMeBoard[newMe.Agent2] = true;
-                    cache = Mini(deepness - 1, setting, newMeBoard, EnemyBoard, newMe, Enemy, Math.Max(result, alpha), beta);
+                    current = Mini(deepness - 1, ScoreBoard, newMeBoard, EnemyBoard, newMe, Enemy, Math.Max(result, alpha), beta);
                 }
 
-                if (result < cache.Item1)
+                if (result < current)
                 {
-                    result = cache.Item1;
-                    bestMove = new Decided(nextMeValue.Agent1, nextMeValue.Agent2);
+                    result = current;
                 }
                 if (result >= beta)
                 {
-                    return new Tuple<int, Decided>(result, bestMove);
+                    return result;
                 }
             }
 
-            return new Tuple<int, Decided>(result, bestMove);
+            return result;
         }
 
         //Enemyが動く
-        public Tuple<int, Decided> Mini(int deepness, BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta)
+        public int Mini(int deepness, sbyte[,] ScoreBoard, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta)
         {
             if (deepness == 0)
             {
                 ends++;
-                return new Tuple<int, Decided>(PointEvaluator.Calculate(setting.ScoreBoard, MeBoard, 0) - PointEvaluator.Calculate(setting.ScoreBoard, EnemyBoard, 0), null);
+                return PointEvaluator.Calculate(ScoreBoard, MeBoard, 0) - PointEvaluator.Calculate(ScoreBoard, EnemyBoard, 0);
             }
 
             int result = int.MaxValue;
-            Decided bestMove = null;
 
             Player Killer = new Player(new Point(114, 114), new Point(114, 114));
-            var nextEnemy = MoveOrderling(setting, EnemyBoard, MeBoard, Enemy, Me, Killer);
+            var nextEnemy = MoveOrderling(ScoreBoard, EnemyBoard, MeBoard, Enemy, Me, Killer);
 
             for (int i = 0; i < nextEnemy.Count; i++)
             {
@@ -120,7 +186,7 @@ namespace AngryBee.AI
 
                 if (!movable.IsMovable) continue;
 
-                Tuple<int, Decided> cache = null;
+                int current = 0;
                 var newEnBoard = EnemyBoard;
 
                 if (movable.IsEraseNeeded)
@@ -144,25 +210,24 @@ namespace AngryBee.AI
                         newEnBoard[newEnemy.Agent2] = true;
 
 
-                    cache = Max(deepness - 1, setting, newMeBoard, newEnBoard, Me, newEnemy, alpha, Math.Min(result, beta));
+                    current = Max(deepness - 1, ScoreBoard, newMeBoard, newEnBoard, Me, newEnemy, alpha, Math.Min(result, beta));
                 }
                 else
                 {
                     newEnBoard[newEnemy.Agent1] = true;
                     newEnBoard[newEnemy.Agent2] = true;
-                    cache = Max(deepness - 1, setting, MeBoard, newEnBoard, Me, newEnemy, alpha, Math.Min(result, beta));
+                    current = Max(deepness - 1, ScoreBoard, MeBoard, newEnBoard, Me, newEnemy, alpha, Math.Min(result, beta));
                 }
 
-                if (result > cache.Item1)
+                if (result > current)
                 {
-                    result = cache.Item1;
-                    bestMove = new Decided(nextEnemyValue.Agent1, nextEnemyValue.Agent2);
+                    result = current;
                 }
                 if (result <= alpha)
-                    return new Tuple<int, Decided>(result, bestMove);
+                    return result;
             }
 
-            return new Tuple<int, Decided>(result, bestMove);
+            return result;
         }
 
         //遷移順を決める.  「この関数においては」MeBoard…手番プレイヤのボード, Me…手番プレイヤ、とします。
@@ -172,7 +237,7 @@ namespace AngryBee.AI
         //ルール1. Killer手があれば、それを優先する。(Killer手がなければ、Killer.Agent1 = (514, 514), Killer.Agent2 = (514, 514)のように範囲外の移動先を設定すること。)
         //ルール2. 次のmoveで得られる「タイルポイント」の合計値、が大きい移動(の組み合わせ)を優先する。
         //なお、ルールはMovableChecker.csに準ずるため、現在は、「タイル除去先にもう一方のエージェントが移動することはできない」として計算しています。
-        private List<KeyValuePair<int, (VelocityPoint Agent1, VelocityPoint Agent2)>> MoveOrderling(in BoardSetting setting, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, in Player Killer)
+        private List<KeyValuePair<int, (VelocityPoint Agent1, VelocityPoint Agent2)>> MoveOrderling(sbyte[,] ScoreBoard, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, in Player Killer)
         {
             uint width = MeBoard.Width;
             uint height = MeBoard.Height;
@@ -199,11 +264,11 @@ namespace AngryBee.AI
                     {
                         if (!MeBoard[newMe.Agent1.X, newMe.Agent1.Y] && !EnemyBoard[newMe.Agent1.X, newMe.Agent1.Y])
                         {
-                            score += setting.ScoreBoard[newMe.Agent1.X, newMe.Agent1.Y];
+                            score += ScoreBoard[newMe.Agent1.X, newMe.Agent1.Y];
                         }
                         if (!MeBoard[newMe.Agent2.X, newMe.Agent2.Y] && !EnemyBoard[newMe.Agent2.X, newMe.Agent2.Y])
                         {
-                            score += setting.ScoreBoard[newMe.Agent2.X, newMe.Agent2.Y];
+                            score += ScoreBoard[newMe.Agent2.X, newMe.Agent2.Y];
                         }
                         score *= -1;
                     }
@@ -213,5 +278,10 @@ namespace AngryBee.AI
             orderling.Sort((a, b) => a.Key - b.Key);
             return orderling;
         }
+
+        protected override void EndGame(GameEnd end)
+        {
+        }
+
     }
 }
