@@ -26,70 +26,84 @@ namespace AngryBee.AI
         //1ターン = 深さ2
         protected override void Solve()
         {
-            int alpha = int.MinValue + 1;
-            int beta = int.MaxValue;
-
-            var deepness = StartDepth;
-
-            int result = int.MinValue;
-
-            Player Killer = new Player(new Point(114, 114), new Point(114, 114));
-            var nextMe = MoveOrderling(ScoreBoard, MyBoard, EnemyBoard, new Player(MyAgent1, MyAgent2), new Player(EnemyAgent1, EnemyAgent2), Killer);
-
-            for (int i = 0; i < nextMe.Count; i++)
-            {
-                var nextMeValue = nextMe[i].Value;
-                Player newMe = new Player(MyAgent1, MyAgent2);
-                newMe.Agent1 += nextMeValue.Agent1;
-                newMe.Agent2 += nextMeValue.Agent2;
-
-                var movable = Checker.MovableCheck(MyBoard, EnemyBoard, newMe, new Player(EnemyAgent1, EnemyAgent2));
-
-                if (!movable.IsMovable) continue;
-
-                int current = 0;
-                var newMeBoard = MyBoard;
-
-                if (movable.IsEraseNeeded)
-                {
-                    var newEnBoard = EnemyBoard;
-
-                    if (movable.Me1 == Rule.MovableResultType.EraseNeeded)
-                    {
-                        newEnBoard[newMe.Agent1] = false;
-                        newMe.Agent1 = MyAgent1;
-                    }
-                    else
-                        newMeBoard[newMe.Agent1] = true;
-
-                    if (movable.Me2 == Rule.MovableResultType.EraseNeeded)
-                    {
-                        newEnBoard[newMe.Agent2] = false;
-                        newMe.Agent2 = MyAgent2;
-                    }
-                    else
-                        newMeBoard[newMe.Agent2] = true;
-
-                    current = Mini(deepness - 1, ScoreBoard, newMeBoard, newEnBoard, newMe, new Player(EnemyAgent1, EnemyAgent2), Math.Max(result, alpha), beta);
-                }
-                else
-                {
-                    newMeBoard[newMe.Agent1] = true;
-                    newMeBoard[newMe.Agent2] = true;
-                    current = Mini(deepness - 1, ScoreBoard, newMeBoard, EnemyBoard, newMe, new Player(EnemyAgent1, EnemyAgent2), Math.Max(result, alpha), beta);
-                }
-
-                if (result < current)
-                {
-                    result = current;
-                    SolverResult = new Decided(nextMeValue.Agent1, nextMeValue.Agent2);
-                }
-                if (result >= beta)
-                {
-                    return;
-                }
-            }
+			int deepness = StartDepth;
+			for (; ; deepness++)
+			{
+				var tmp = SolveSub(deepness);
+				if (CancellationToken.IsCancellationRequested == false)
+					SolverResult = tmp;
+				else
+					break;
+				Log("[SOLVER] deepness = {0}", deepness);
+			}
         }
+
+		private Decided SolveSub(int deepness)
+		{
+			int alpha = int.MinValue + 1;
+			int beta = int.MaxValue;
+			int result = int.MinValue;
+
+			Player Killer = new Player(new Point(114, 114), new Point(114, 114));
+			var nextMe = MoveOrderling(ScoreBoard, MyBoard, EnemyBoard, new Player(MyAgent1, MyAgent2), new Player(EnemyAgent1, EnemyAgent2), Killer);
+
+			Decided returnValue = null;
+
+			for (int i = 0; i < nextMe.Count; i++)
+			{
+				var nextMeValue = nextMe[i].Value;
+				Player newMe = new Player(MyAgent1, MyAgent2);
+				newMe.Agent1 += nextMeValue.Agent1;
+				newMe.Agent2 += nextMeValue.Agent2;
+
+				var movable = Checker.MovableCheck(MyBoard, EnemyBoard, newMe, new Player(EnemyAgent1, EnemyAgent2));
+
+				if (!movable.IsMovable) continue;
+
+				int current = 0;
+				var newMeBoard = MyBoard;
+
+				if (movable.IsEraseNeeded)
+				{
+					var newEnBoard = EnemyBoard;
+
+					if (movable.Me1 == Rule.MovableResultType.EraseNeeded)
+					{
+						newEnBoard[newMe.Agent1] = false;
+						newMe.Agent1 = MyAgent1;
+					}
+					else
+						newMeBoard[newMe.Agent1] = true;
+
+					if (movable.Me2 == Rule.MovableResultType.EraseNeeded)
+					{
+						newEnBoard[newMe.Agent2] = false;
+						newMe.Agent2 = MyAgent2;
+					}
+					else
+						newMeBoard[newMe.Agent2] = true;
+
+					current = Mini(deepness - 1, ScoreBoard, newMeBoard, newEnBoard, newMe, new Player(EnemyAgent1, EnemyAgent2), Math.Max(result, alpha), beta);
+				}
+				else
+				{
+					newMeBoard[newMe.Agent1] = true;
+					newMeBoard[newMe.Agent2] = true;
+					current = Mini(deepness - 1, ScoreBoard, newMeBoard, EnemyBoard, newMe, new Player(EnemyAgent1, EnemyAgent2), Math.Max(result, alpha), beta);
+				}
+
+				if (result < current)
+				{
+					result = current;
+					returnValue = new Decided(nextMeValue.Agent1, nextMeValue.Agent2);
+				}
+				if (result >= beta)
+				{
+					return returnValue;
+				}
+			}
+			return returnValue;
+		}
 
         //Meが動く
         public int Max(int deepness, sbyte[,] ScoreBoard, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta)
@@ -107,6 +121,8 @@ namespace AngryBee.AI
 
             for (int i = 0; i < nextMe.Count; i++)
             {
+				if (CancellationToken.IsCancellationRequested) { break; }
+
                 var nextMeValue = nextMe[i].Value;
                 Player newMe = Me;
                 newMe.Agent1 += nextMeValue.Agent1;
@@ -177,7 +193,9 @@ namespace AngryBee.AI
 
             for (int i = 0; i < nextEnemy.Count; i++)
             {
-                var nextEnemyValue = nextEnemy[i].Value;
+				if (CancellationToken.IsCancellationRequested) { break; }
+
+				var nextEnemyValue = nextEnemy[i].Value;
                 Player newEnemy = Enemy;
                 newEnemy.Agent1 += nextEnemyValue.Agent1;
                 newEnemy.Agent2 += nextEnemyValue.Agent2;

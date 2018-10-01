@@ -25,7 +25,7 @@ namespace AngryBee
                     Environment.Exit(0);
                 };
 
-            ai.StartSync(portId);
+            ai.StartSync(portId, true);
 
 
             /*byte width = 12;
