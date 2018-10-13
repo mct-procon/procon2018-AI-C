@@ -14,18 +14,39 @@ namespace AngryBee.AI
 
         VelocityPoint[] WayEnumerator = { (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1) };
 
-        public int ends = 0;
+		private struct DP
+		{
+			public int Score;
+			public VelocityPoint Agent1Way;
+			public VelocityPoint Agent2Way;
 
-        public int StartDepth { get; set; } = 1;
+			public void UpdateScore(int score, VelocityPoint a1, VelocityPoint a2)
+			{
+				if(Score < score)
+				{
+					Agent1Way = a1;
+					Agent2Way = a2;
+				}
+			}
+		}
+		private DP[] dp = new DP[50];
+
+		//public int ends = 0;
+
+		public int StartDepth { get; set; } = 1;
 
         public AI(int startDepth)
-        {
-            StartDepth = startDepth;
+		{
+			for (int i = 0; i < 50; ++i)
+				dp[i] = new DP();
+			StartDepth = startDepth;
         }
 
-        //1ターン = 深さ2
-        protected override void Solve()
+		//1ターン = 深さ2
+		protected override void Solve()
         {
+			for (int i = 0; i < 50; ++i)
+				dp[i].Score = int.MinValue;
 			int deepness = StartDepth;
 			for (; ; deepness++)
 			{
@@ -45,7 +66,7 @@ namespace AngryBee.AI
 			int result = int.MinValue;
 
 			Player Killer = new Player(new Point(114, 114), new Point(114, 114));
-			var nextMe = MoveOrderling(ScoreBoard, MyBoard, EnemyBoard, new Player(MyAgent1, MyAgent2), new Player(EnemyAgent1, EnemyAgent2), Killer);
+			var nextMe = MoveOrderling(ScoreBoard, MyBoard, EnemyBoard, new Player(MyAgent1, MyAgent2), new Player(EnemyAgent1, EnemyAgent2), 0);
 
 			Decided returnValue = null;
 
@@ -83,18 +104,19 @@ namespace AngryBee.AI
 					else
 						newMeBoard[newMe.Agent2] = true;
 
-					current = Mini(deepness - 1, ScoreBoard, newMeBoard, newEnBoard, newMe, new Player(EnemyAgent1, EnemyAgent2), Math.Max(result, alpha), beta);
+					current = Mini(deepness - 1, ScoreBoard, newMeBoard, newEnBoard, newMe, new Player(EnemyAgent1, EnemyAgent2), Math.Max(result, alpha), beta, 1);
 				}
 				else
 				{
 					newMeBoard[newMe.Agent1] = true;
 					newMeBoard[newMe.Agent2] = true;
-					current = Mini(deepness - 1, ScoreBoard, newMeBoard, EnemyBoard, newMe, new Player(EnemyAgent1, EnemyAgent2), Math.Max(result, alpha), beta);
+					current = Mini(deepness - 1, ScoreBoard, newMeBoard, EnemyBoard, newMe, new Player(EnemyAgent1, EnemyAgent2), Math.Max(result, alpha), beta, 1);
 				}
 
 				if (result < current)
 				{
 					result = current;
+					dp[0].UpdateScore(result, nextMeValue.Agent1, nextMeValue.Agent2);
 					returnValue = new Decided(nextMeValue.Agent1, nextMeValue.Agent2);
 				}
 				if (result >= beta)
@@ -106,18 +128,18 @@ namespace AngryBee.AI
 		}
 
         //Meが動く
-        public int Max(int deepness, sbyte[,] ScoreBoard, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta)
+        public int Max(int deepness, sbyte[,] ScoreBoard, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta,int count)
         {
             if (deepness == 0)
             {
-                ends++;
+                //ends++;
                 return PointEvaluator.Calculate(ScoreBoard, MeBoard, 0) - PointEvaluator.Calculate(ScoreBoard, EnemyBoard, 0);
             }
 
             int result = int.MinValue;
 
             Player Killer = new Player(new Point(114, 114), new Point(114, 114));
-            var nextMe = MoveOrderling(ScoreBoard, MeBoard, EnemyBoard, Me, Enemy, Killer);
+            var nextMe = MoveOrderling(ScoreBoard, MeBoard, EnemyBoard, Me, Enemy, count);
 
             for (int i = 0; i < nextMe.Count; i++)
             {
@@ -155,20 +177,21 @@ namespace AngryBee.AI
                     else
                         newMeBoard[newMe.Agent2] = true;
 
-                    current = Mini(deepness - 1, ScoreBoard, newMeBoard, newEnBoard, newMe, Enemy, Math.Max(result, alpha), beta);
+                    current = Mini(deepness - 1, ScoreBoard, newMeBoard, newEnBoard, newMe, Enemy, Math.Max(result, alpha), beta, count + 1);
                 }
                 else
                 {
                     newMeBoard[newMe.Agent1] = true;
                     newMeBoard[newMe.Agent2] = true;
-                    current = Mini(deepness - 1, ScoreBoard, newMeBoard, EnemyBoard, newMe, Enemy, Math.Max(result, alpha), beta);
+                    current = Mini(deepness - 1, ScoreBoard, newMeBoard, EnemyBoard, newMe, Enemy, Math.Max(result, alpha), beta, count + 1);
                 }
 
                 if (result < current)
                 {
                     result = current;
-                }
-                if (result >= beta)
+					dp[count].UpdateScore(result, nextMeValue.Agent1, nextMeValue.Agent2);
+				}
+				if (result >= beta)
                 {
                     return result;
                 }
@@ -178,18 +201,18 @@ namespace AngryBee.AI
         }
 
         //Enemyが動く
-        public int Mini(int deepness, sbyte[,] ScoreBoard, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta)
+        public int Mini(int deepness, sbyte[,] ScoreBoard, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int alpha, int beta, int count)
         {
             if (deepness == 0)
             {
-                ends++;
+                //ends++;
                 return PointEvaluator.Calculate(ScoreBoard, MeBoard, 0) - PointEvaluator.Calculate(ScoreBoard, EnemyBoard, 0);
             }
 
             int result = int.MaxValue;
 
             Player Killer = new Player(new Point(114, 114), new Point(114, 114));
-            var nextEnemy = MoveOrderling(ScoreBoard, EnemyBoard, MeBoard, Enemy, Me, Killer);
+            var nextEnemy = MoveOrderling(ScoreBoard, EnemyBoard, MeBoard, Enemy, Me, count);
 
             for (int i = 0; i < nextEnemy.Count; i++)
             {
@@ -228,20 +251,21 @@ namespace AngryBee.AI
                         newEnBoard[newEnemy.Agent2] = true;
 
 
-                    current = Max(deepness - 1, ScoreBoard, newMeBoard, newEnBoard, Me, newEnemy, alpha, Math.Min(result, beta));
+                    current = Max(deepness - 1, ScoreBoard, newMeBoard, newEnBoard, Me, newEnemy, alpha, Math.Min(result, beta), count + 1);
                 }
                 else
                 {
                     newEnBoard[newEnemy.Agent1] = true;
                     newEnBoard[newEnemy.Agent2] = true;
-                    current = Max(deepness - 1, ScoreBoard, MeBoard, newEnBoard, Me, newEnemy, alpha, Math.Min(result, beta));
+                    current = Max(deepness - 1, ScoreBoard, MeBoard, newEnBoard, Me, newEnemy, alpha, Math.Min(result, beta), count + 1);
                 }
 
                 if (result > current)
                 {
                     result = current;
-                }
-                if (result <= alpha)
+					dp[count].UpdateScore(-result, nextEnemyValue.Agent1, nextEnemyValue.Agent2);
+				}
+				if (result <= alpha)
                     return result;
             }
 
@@ -255,11 +279,13 @@ namespace AngryBee.AI
         //ルール1. Killer手があれば、それを優先する。(Killer手がなければ、Killer.Agent1 = (514, 514), Killer.Agent2 = (514, 514)のように範囲外の移動先を設定すること。)
         //ルール2. 次のmoveで得られる「タイルポイント」の合計値、が大きい移動(の組み合わせ)を優先する。
         //なお、ルールはMovableChecker.csに準ずるため、現在は、「タイル除去先にもう一方のエージェントが移動することはできない」として計算しています。
-        private List<KeyValuePair<int, (VelocityPoint Agent1, VelocityPoint Agent2)>> MoveOrderling(sbyte[,] ScoreBoard, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, in Player Killer)
+        private List<KeyValuePair<int, (VelocityPoint Agent1, VelocityPoint Agent2)>> MoveOrderling(sbyte[,] ScoreBoard, in ColoredBoardSmallBigger MeBoard, in ColoredBoardSmallBigger EnemyBoard, in Player Me, in Player Enemy, int deep)
         {
             uint width = MeBoard.Width;
             uint height = MeBoard.Height;
             List<KeyValuePair<int, (VelocityPoint, VelocityPoint)>> orderling = new List<KeyValuePair<int, (VelocityPoint, VelocityPoint)>>();
+
+			var Killer = dp[deep].Score == int.MinValue ? new Player(new Point(114, 514), new Point(114, 514)) : new Player(Me.Agent1 + dp[deep].Agent1Way, Me.Agent2 + dp[deep].Agent2Way);
 
             for (int i = 0; i < WayEnumerator.Length; i++)
             {
@@ -288,16 +314,23 @@ namespace AngryBee.AI
                         {
                             score += ScoreBoard[newMe.Agent2.X, newMe.Agent2.Y];
                         }
-                        score *= -1;
+                        score = -score;
                     }
                     orderling.Add(new KeyValuePair<int, (VelocityPoint, VelocityPoint)>(score, (WayEnumerator[i], WayEnumerator[m])));
                 }
             }
-            orderling.Sort((a, b) => a.Key - b.Key);
+            orderling.Sort(impl_sorter);
             return orderling;
         }
 
-        protected override void EndGame(GameEnd end)
+		private int impl_sorter(KeyValuePair<int, (VelocityPoint Agent1, VelocityPoint Agent2)> a, KeyValuePair<int, (VelocityPoint Agent1, VelocityPoint Agent2)> b) => a.Key - b.Key;
+
+		protected override int CalculateTimerMiliSconds(int miliseconds)
+		{
+			return miliseconds - 1000;
+		}
+
+		protected override void EndGame(GameEnd end)
         {
         }
 
