@@ -8,14 +8,14 @@ namespace AngryBee
     {
         public static void Main(string[] args)
         {
-            int portId, startDepth = 1;
+            int portId;
 
             Console.WriteLine("ポート番号を入力（先手15000, 後手15001)＞");
             portId = int.Parse(Console.ReadLine());
             //Console.WriteLine("探索の深さの上限を入力（深さ = ターン数 * 2, 5以下が目安）");
             //maxDepth = int.Parse(Console.ReadLine());
 
-            var ai = new AI.AI(startDepth);
+            var ai = new AI.AhoAI();
 
             Console.CancelKeyPress +=
                 (o, e) =>

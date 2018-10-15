@@ -35,7 +35,7 @@ namespace AngryBee.AI
 
 		public int StartDepth { get; set; } = 1;
 
-        public AI(int startDepth)
+        public AI(int startDepth = 1)
 		{
 			for (int i = 0; i < 50; ++i)
 				dp[i] = new DP();
