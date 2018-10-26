@@ -15,7 +15,7 @@ namespace AngryBee
             //Console.WriteLine("探索の深さの上限を入力（深さ = ターン数 * 2, 5以下が目安）");
             //maxDepth = int.Parse(Console.ReadLine());
 
-            var ai = new AI.AI();
+            var ai = new AI.AhoAI();
 
             Console.CancelKeyPress +=
                 (o, e) =>
