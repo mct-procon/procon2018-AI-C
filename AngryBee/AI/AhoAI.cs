@@ -16,8 +16,10 @@ namespace AngryBee.AI
 
 		protected override void Solve()
 		{
-			var tmp = MoveOrderling(ScoreBoard, MyBoard, EnemyBoard, new Player(MyAgent1, MyAgent2), new Player(EnemyAgent1, EnemyAgent2))[0];
-			SolverResult = new Decided(tmp.Value.Agent1, tmp.Value.Agent2);
+			var tmp = MoveOrderling(ScoreBoard, MyBoard, EnemyBoard, new Player(MyAgent1, MyAgent2), new Player(EnemyAgent1, EnemyAgent2));
+			SolverResultList = new DecidedEx();
+			for (int i = 0; i < tmp.Count; ++i)
+				SolverResultList.Add(new Decided(tmp[i].Value.Agent1, tmp[i].Value.Agent2, tmp[i].Key));
 		}
 
 		//遷移順を決める.  「この関数においては」MeBoard…手番プレイヤのボード, Me…手番プレイヤ、とします。
